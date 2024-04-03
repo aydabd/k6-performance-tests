@@ -77,8 +77,8 @@ services:
     image: simple-k6-test-template:latest
     networks:
       - k6-webnet
-    # environment:
-      # - K6_LOG_OUTPUT=none
+    environment:
+      - K6_LOG_OUTPUT=none
 
   simple-k6-websocket-test:
     depends_on:
