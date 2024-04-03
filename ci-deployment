@@ -1,0 +1,298 @@
+#!/bin/sh
+##################################################################
+# Title: ci-deployment
+# Description: Run the tests using the test scripts image and clean up the docker containers, volumes, networks and images.
+# Author: Aydin Abdi
+#
+# See the usage of the ci-deployment by running the following command:
+# ./ci-deployment -h
+#############################################################################################
+
+# ASCI colors for the output messages
+RED='\033[0;31m'
+ORANGE='\033[0;33m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+
+EXTERNAL_SERVICES="grafana influxdb nginx"
+DEFAULT_API_SERVER="test-api.k6.io"
+DEFAULT_K6_CONFIG_FILE="./k6-config-options/default-test-config.json"
+
+# Directory of test scripts
+TEST_SCRIPTS_DIR="simple-k6-test-template simple-k6-websocket-test"
+VERSION="latest"
+
+
+# Usage of the ci-deployment
+__ci_deployment_usage() {
+    cat <<EOF
+
+Usage: $(basename $0) [options]
+
+Description:
+    Script for build and versioning the docker images and running the tests.
+    The script can also clean up the docker containers, volumes, networks and images.
+
+
+Options:
+    -h: Show this message
+    -d: The test scripts image to run the tests (required for running the tests)
+    -b: Build the docker files (default: false)
+    -v: The version of the test scripts image (default: latest)
+    -s: The server address to run the tests (default: test-api.k6.io)
+    -k: The k6 config file to run the tests (default: ./k6-config-options/default-test-config.json)
+    -n: Reload the nginx server (default: false)
+    -t: Tear down the external services: ${EXTERNAL_SERVICES} (default: false)
+    -e: Create and run the external services: ${EXTERNAL_SERVICES} (default: false)
+
+    CAUTION: The following options will clean up the docker containers, volumes, networks and images
+             Use them if you are sure what you are doing!
+    -c: Clean up the docker containers, volumes, networks and images (default: false)
+        This will remove all persistent data from the docker containers, volumes, networks and images
+    -r: Remove all the images from the local machine (default: false)
+
+
+Example:
+    $(basename $0) -b
+
+    Build all images defined in the compose file
+
+    $(basename $0) -d test-scripts-dir -s test-api.k6.io -k ./k6-config-options/default-test-config.json
+
+    Starts the external services: ${EXTERNAL_SERVICES} and runs the tests for the test scripts directory: test-scripts-dir
+    against the server address: test-api.k6.io using the k6 config file: ./k6-config-options/default-test-config.json
+
+EOF
+}
+
+# Build the docker images using the docker compose
+__ci_deployment_compose_build_images() {
+    docker compose build --parallel
+}
+
+# Run the external services using the docker compose before running the tests
+__ci_deployment_run_external_services() {
+    docker compose up -d --wait $EXTERNAL_SERVICES
+}
+
+# Tear down the external services using the docker compose after running the tests
+__ci_deployment_tear_down_external_services() {
+    printf "Tearing down services: ${EXTERNAL_SERVICES}\n"
+    docker compose down
+
+    printf "Persistent data from the services: ${EXTERNAL_SERVICES} not removed\n"
+}
+
+
+####################################################
+# Sync the hardware clock with the system clock
+#
+# This is required to avoid the time drift issue(WSL2 windows)
+# when running the tests using the docker containers.
+#
+# Note: This requires sudo permission
+####################################################
+__ci_deployment_hwclock_sync() {
+    printf "Checking the date and time\n"
+    printf "${ORANGE}The date and time: %s${NC}\n" "$(date)"
+
+    read -p "Is the date correct? [y/n](default: y): " resp
+    case $resp in
+        [nN]|[nN][oO]) ;;
+        *) return ;;
+    esac
+
+    printf "Syncing the hardware clock with the system clock\n"
+    printf "${ORANGE}[WARNING] This is a temporary fix for the time drift issue for WSL2 windows${NC}\n"
+    printf "${ORANGE}[WARNING] It needs root permission to sync the hardware clock with the system clock${NC}\n"
+    sudo hwclock -s || true
+    printf "Hardware clock has been synced with the system clock\n"
+    printf "${GREEN}We are safe now, no more root permission required${NC}\n"
+}
+
+################################################################################
+# Run the tests using the test scripts image.
+# Note: The name of the image is same as the test script directory.
+# args:
+#   -d(type string): The test script directory to run the tests (required)
+#   -k(type string): The k6 config file to run the tests
+#                   (default: ./k6-config-options/default-test-config.json)
+#   -s(type string): The server address to run the tests
+#                   (default: test-api.k6.io)
+#   Example:
+#   __ci_deployment_run_test -d test-scripts-dir \
+#                             -s test-api.k6.io \
+#                             -k ./k6-config-options/default-test-config.json \
+#                             -v latest
+################################################################################
+__ci_deployment_run_test() {
+    test_script_dir=""
+    k6_config_file=""
+    server_address=""
+    docker_args="--rm -it -u $(id -u):$(id -g)"
+    test_script_resp=""
+
+    while getopts "d:k:s:" opt; do
+        case $opt in
+            d) test_script_dir=$OPTARG ;;
+            k) k6_config_file=$OPTARG ;;
+            s) server_address=$OPTARG ;;
+            \?) printf "Invalid option: -$OPTARG\n" && exit 1 ;;
+        esac
+    done
+
+    server_address="${server_address:-$DEFAULT_API_SERVER}"
+    k6_config_file="${k6_config_file:-$DEFAULT_K6_CONFIG_FILE}"
+
+    server_address_args="-e API_SERVER=$server_address"
+    k6_config_file_args="-e PERFORMANCE_K6_OPTION_CONFIG_PATH=$k6_config_file"
+
+    if [ -z "$test_script_dir" ]; then
+        printf "The test script directory is required to run the tests\n"
+        printf "Please provide the test script directory using the -d flag\n"
+        exit 1
+    fi
+
+    if [ ! -d "$test_script_dir" ]; then
+        printf "The test script directory: ${test_script_dir} does not exist\n"
+        exit 1
+    fi
+
+    docker_args="$docker_args -v $(pwd)/$test_script_dir:/performance-k6/test-logs"
+
+    printf "ci-deployment-run-test: Running the test for test dir: $test_script_dir\n"
+    docker compose run $server_address_args $k6_config_file_args $docker_args $test_script_dir
+}
+
+#####################################################################################
+# Clean up the docker containers, volumes, networks and images
+#
+# Caution: This will clean up all the docker containers, volumes, networks and images
+#####################################################################################
+__ci_deployment_cleanup() {
+    read -p "${ORANGE}CAUTION: are you sure you want to clean up all the docker containers, volumes, networks and images? [yes/no]:${NC} " resp
+    if [ "$resp" = "yes" ]; then
+        docker compose down --volumes
+        docker system prune --force
+        docker volume prune --force
+        docker network prune --force
+        docker image prune --force
+        printf "All the docker containers, volumes, networks and images have been cleaned up\n"
+    fi
+}
+
+##########################################################################
+# Remove all the docker images from the local machine
+# args:
+#  -y(type string): Remove all the images without asking for confirmation
+#                 (default: false)
+# Example: __ci_deployment_remove_all_images -y
+#          This will remove all the images without asking for confirmation
+#
+# Caution: This will remove all the images from the local machine
+##########################################################################
+__ci_deployment_remove_all_images() {
+    case $1 in
+        -y | --yes) docker rmi $(docker images -q) -f 2>/dev/null || true ;;
+        *) printf "${ORANGE}CAUTION: Are you sure you want to remove all the images from the local machine? [y/n]:${NC} " && read resp
+            if [ "$resp" = "y" ]; then
+                docker rmi $(docker images -q) -f 2>/dev/null || true
+                printf "All the images have been removed from the local machine\n"
+            fi
+            ;;
+    esac
+}
+
+
+############################################################################
+# Reload the nginx server using the docker compose
+#
+# When the nginx.conf file is updated, the nginx server needs to be reloaded
+# to apply the changes.
+############################################################################
+__ci_deployment_compose_ngnix_reload() {
+    docker compose exec nginx nginx -s reload
+}
+
+
+# Check if the docker is installed and is the correct version 25 or higher
+__ci_deployment_is_docker_installed_and_is_correct_version() {
+    if ! command -v docker >/dev/null 2>&1; then
+        printf "${RED}Docker is not installed${NC}\n"
+        exit 1
+    fi
+
+    docker_version=$(docker --version)
+    docker_version=${docker_version#*version }
+    docker_version=${docker_version%%,*}
+    major_version=${docker_version%%.*}
+
+    if [ "$major_version" -lt 25 ]; then
+        printf "${RED}The docker version is lower than 25${NC}\n"
+        printf "${RED}Install the latest docker version.${NC}\n"
+        exit 1
+    fi
+
+    printf "${GREEN}Docker is installed and the version is correct: %s${NC}\n" "$docker_version"
+}
+
+
+##################################################################################################
+# Main function of the ci-deployment
+#
+# See: __ci_deployment_usage for the available options
+##################################################################################################
+main() {
+    __ci_deployment_is_docker_installed_and_is_correct_version
+
+    just_build_images=false
+    cleanup=false
+    test_script_image=""
+    k6_config_file=""
+    version=""
+    server_address=""
+    args_run=""
+    remove_all_images=false
+
+    while getopts "hbd:v:k:s:ntrce" opt; do
+        case $opt in
+            h) __ci_deployment_usage; exit 0 ;;
+            b) just_build_images=true && __ci_deployment_compose_build_images || true && exit 0 ;;
+            d) test_script_image=$OPTARG ;;
+            v) version=$OPTARG ;;
+            k) k6_config_file=$OPTARG ;;
+            s) server_address=$OPTARG ;;
+            n) __ci_deployment_compose_ngnix_reload || true && exit 0 ;;
+            t) __ci_deployment_tear_down_external_services || true && exit 0 ;;
+            e) __ci_deployment_run_external_services || true && exit 0 ;;
+            r) remove_all_images=true && __ci_deployment_remove_all_images -y && exit 0 ;;
+            c) cleanup=true && __ci_deployment_cleanup || true && exit 0 ;;
+            \?) printf "Invalid option: -$OPTARG\n" && __ci_deployment_usage && exit 1 ;;
+        esac
+    done
+
+    server_address="${server_address:-$DEFAULT_API_SERVER}"
+    k6_config_file="${k6_config_file:-$DEFAULT_K6_CONFIG_FILE}"
+    version="${version:-$VERSION}"
+
+    if [ -z "$test_script_image" ]; then
+        printf "${RED}The test scripts image is required to run the tests${NC}\n"
+        printf "Please provide the test scripts image using the -d flag\n"
+        printf "Example: %s -d test-scripts-dir\n" "$(basename $0)"
+        exit 1
+    fi
+
+    __ci_deployment_compose_build_images
+
+    ###########################################################
+    # TODO: REMOVE THIS LINE AFTER FIXING THE TIME DRIFT ISSUE
+    __ci_deployment_hwclock_sync
+    ###########################################################
+
+    __ci_deployment_run_external_services
+
+    __ci_deployment_run_test -d $test_script_image -k $k6_config_file -s $server_address
+}
+
+main "$@"

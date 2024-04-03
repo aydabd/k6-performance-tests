@@ -1,0 +1,26 @@
+{
+    "insecureSkipTLSVerify": true,
+    "discardResponseBodies": true,
+    "noUsageReport": true,
+    "noConnectionReuse": true,
+    "thresholds": {
+        "http_req_failed": [{ "threshold": "rate<0.01", "abortOnFail": false}],
+        "http_req_duration{testType:acceptance-requirements}": ["p(90)<400", "p(95)<800", "p(99.9)<2000"]
+    },
+    "scenarios": {
+        "ramping-arrival-rate-800vus-4000-iters-1h": {
+            "executor": "ramping-arrival-rate",
+            "startRate": 10,
+            "timeUnit": "1m",
+            "preAllocatedVUs": 50,
+            "maxVUs": 800,
+            "stages": [
+                { "target": 66, "duration": "10m" },
+                { "target": 132, "duration": "10m" },
+                { "target": 400, "duration": "20m" },
+                { "target": 400, "duration": "10m" },
+                { "target": 66, "duration": "10m" }
+            ]
+        }
+    }
+}

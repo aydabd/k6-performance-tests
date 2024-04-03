@@ -1,0 +1,38 @@
+# The pre-commit-config.yaml file is created in the mamba-githook application
+# User can edit this file to add or remove hooks from the pre-commit configuration
+#
+# for more information for other options see
+# <https://pre-commit.com/#pre-commit-configyaml---top-level>
+
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.5.0
+  hooks:
+  - id: trailing-whitespace
+    exclude: ^docs/
+  - id: end-of-file-fixer
+    exclude: ^docs/
+  - id: check-yaml
+  - id: check-toml
+  - id: check-json
+  - id: check-merge-conflict
+- repo: https://github.com/codespell-project/codespell
+  rev: v2.2.6
+  hooks:
+  - id: codespell
+- repo: local
+  hooks:
+  - id: linters
+    name: eslint & markdownlint
+    description: "Run script linters.sh, this hook based on this project"
+    entry: ./linters-jsdoc2md -a
+    language: script
+    pass_filenames: false
+- repo: local
+  hooks:
+  - id: jsdocs2md
+    name: jsdoc2md
+    description: "Run script jsdoc2md.sh, this hook based on this project"
+    entry: ./linters-jsdoc2md -d
+    language: script
+    pass_filenames: false

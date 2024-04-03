@@ -1,0 +1,18 @@
+{
+  "hosts": {
+      "performance.k6.test": "127.0.0.1"
+    },
+  "thresholds": {
+    "http_req_failed": [{ "threshold": "rate<0.01", "abortOnFail": false }],
+    "http_req_duration{testType:acceptance-requirements}": ["p(90)<400", "p(95)<800", "p(99.9)<2000"]
+  },
+  "scenarios": {
+    "per-vu-iterations-acceptance-requirements": {
+      "executor": "per-vu-iterations",
+      "iterations": 1,
+      "vus": 1,
+      "maxDuration": "10s",
+      "tags": { "testType": "acceptance-requirements" }
+    }
+  }
+}

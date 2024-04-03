@@ -1,0 +1,37 @@
+{
+  "insecureSkipTLSVerify": true,
+  "discardResponseBodies": true,
+  "noUsageReport": true,
+  "noConnectionReuse": true,
+  "thresholds": {
+    "http_req_failed": [{ "threshold": "rate<0.01", "abortOnFail": false}],
+    "http_req_duration{testType:acceptance-requirements}": ["p(90)<400", "p(95)<800", "p(99.9)<2000"]
+  },
+  "scenarios": {
+    "ramping-up-loadtest-3min": {
+      "executor": "ramping-vus",
+      "stages": [
+        { "duration": "1m", "target": 65 },
+        { "duration": "1m", "target": 65 },
+        { "duration": "1m", "target": 0 }
+      ],
+      "gracefulRampDown": "15s",
+      "tags": { "testType": "ramp-up-loadtest-3min" }
+    },
+    "spike-test-10min": {
+      "executor": "constant-vus",
+      "vus": 10,
+      "duration": "2m",
+      "startTime": "3m",
+      "tags": { "testType": "spike-10min" }
+    },
+    "shared-1000-iterations-between-200-VUs-acceptance-scenario": {
+      "executor": "shared-iterations",
+      "vus": 200,
+      "iterations": 1000,
+      "maxDuration": "5m",
+      "startTime": "5m",
+      "tags": { "testType": "acceptance-requirements" }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "k6-perfromance-test",
+  "version": "0.1.0",
+  "description": "Advanced performance test using k6",
+  "type": "module",
+  "author": "Aydin Abdi <ayd.abd@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^8.57.0",
+    "eslint": "^8.57.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsdoc": "^48.2.0",
+    "jsdoc-to-markdown": "^8.0.1",
+    "markdownlint-cli": "^0.39.0"
+  },
+  "scripts": {
+    "eslint": "eslint --fix --no-warn-ignored .",
+    "markdownlint": "markdownlint --fix .",
+    "jsdoc2mdClient": "jsdoc2md --files src/clients/*.js > docs/CLIENT_API.md",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

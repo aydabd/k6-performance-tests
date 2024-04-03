@@ -1,0 +1,15 @@
+apiVersion: 1
+
+datasources:
+  - name: K6InfluxDB
+    type: influxdb
+    url: http://influxdb:8086
+    isDefault: true
+    secureJsonData:
+      # This is the same token as the influxdb api token. Check the compose.yaml file
+      token: y3zTEWhDLPfa05-op-gKftVHhbEkmNL98uijqokTMr_JHdlK59PpitKl6QdXNF3YQVrLXdtTdjISNSqWtFwbFw==
+    jsonData:
+      version: Flux
+      organization: k6testorg
+      defaultBucket: simple-k6-tests
+      maxSeries: 10000
