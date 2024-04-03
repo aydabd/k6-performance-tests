@@ -146,7 +146,7 @@ docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli generate -
 There is documentation for the source code that is created during the commit process and updated if the source code is updated with the jsdoc style.
 
 Documentation for the source code can be found here:
-[Source Code Documentation](docs/Client_API.md)
+[Source Code Documentation](docs/CLIENT_API.md)
 
 ## Summary
 
