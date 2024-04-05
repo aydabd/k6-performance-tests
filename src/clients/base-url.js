@@ -1,5 +1,24 @@
 /**
- * Class representing the base URL for the API requests.
+ * This module is used to create a base URL for the API requests.
+ * @module base-url
+ * @author Aydin Abdi <ayd.abd@gmail.com>
+ * @license MIT
+ */
+
+/**
+ * The BaseUrl class is used to create a base URL for the API requests.
+ * @class BaseUrl
+ * @example
+ * ```javascript
+ * const options = {
+ *    host: 'api.example.com',
+ *    protocol: 'https',
+ *    baseURL: 'https://api.example.com',
+ *    port: 443,
+ * };
+ * const baseUrl = new BaseUrl(options);
+ * console.log(JSON.stringify(baseUrl, null, 2));
+ * ```
  */
 class BaseUrl {
     /**

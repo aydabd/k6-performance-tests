@@ -94,6 +94,7 @@ class TokenBearerAuthenticator extends IAuthenticator {
 
 /**
  * Class to handle authentication.
+ * @class Authenticator
  * @example
  * ```javascript
  * const authenticator = new Authenticator();

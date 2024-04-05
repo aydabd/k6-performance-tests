@@ -1,8 +1,8 @@
 /**
- * @file This file contains the HttpClientFactory class which is used to create a new HttpClient instance with a dynamic client proxy.
+ * This module contains the HttpClientFactory, HttpClient, HttpHeaders, HttpOptionsGenerator.
+ * @module http-client
  * @author Aydin Abdi <ayd.abd@gmail.com>
  * @license MIT
- * @module http-client
  */
 
 import { check } from 'k6';
@@ -23,6 +23,7 @@ const DEFAULT_API_HEADERS = {
 
 /**
  * Class representing the headers for the API requests.
+ * @class HttpHeaders
  * @example
  * ```javascript
  * const headers = new HttpHeaders({
@@ -115,6 +116,7 @@ class HttpHeaders {
 
 /**
  * Class representing the options for the HttpClient.
+ * @class HttpOptionsGenerator
  * @example
  * ```javascript
  * const options = new HttpOptionsGenerator({
@@ -153,6 +155,7 @@ class HttpOptionsGenerator {
 
 /**
  * Class representing a client for HTTP requests, supporting dynamic endpoint construction.
+ * @class HttpClient
  * @example
  * ```javascript
  * const client = new HttpClient({ host: 'api.example.com', port: 443, protocol: 'https' });
@@ -383,6 +386,7 @@ class HttpClient {
 
 /**
  * Factory class to create a new HttpClient instance with a dynamic client proxy.
+ * @class HttpClientFactory
  * @param {object} options - The options to configure the client.
  * @returns {object} The dynamic client proxy, the HttpClient and the options.
  * @example

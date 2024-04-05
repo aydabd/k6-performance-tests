@@ -1,13 +1,14 @@
 /**
- * @file http-error-handler.js
+ * This module contains a class that is responsible for logging error details.
+ * @module http-error-handler
  * @author Aydin Abdi <ayd.abd@gmail.com>
  * @license MIT
- * @module http-error-handler
  */
 
 
 /**
  * This class is responsible for logging error details.
+ * @class HttpErrorHandler
  * It can be extended to log errors to a different location.
  * It is used by the API client to log error details.
  */
@@ -73,6 +74,7 @@ class HttpErrorHandler {
 
 /**
  * Logs error details to the console.
+ * @class ErrorHandler
  * @param {object} errorData - An object containing error details.
  * The object will contain the following properties:
  * - url: The URL of the request that caused the error.

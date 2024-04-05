@@ -1,3 +1,10 @@
+/**
+ * This module contains the WebSocket client class and options generator class.
+ * @module WebSocketClient
+ * @author Aydin Abdi <ayd.abd@gmail.com>
+ * @license MIT
+ */
+
 import { WebSocket } from 'k6/experimental/websockets';
 import { setTimeout, clearTimeout } from 'k6/experimental/timers';
 import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
@@ -8,6 +15,7 @@ import { HttpHeaders } from './http-client.js';
 
 /**
  * Class representing a generator for WebSocket options.
+ * @class WSOptionsGenerator
  * @example
  * ```javascript
  * const options = new WSOptionsGenerator({ host: 'api.example.com', port: 443, protocol: 'wss' });
@@ -52,6 +60,7 @@ class WSOptionsGenerator {
 
 /**
  * Class representing a WebSocket client.
+ * @class WebSocketClient
  * @example
  * ```javascript
  * const options = { host: 'api.example.com', port: 443, protocol: 'wss' };
