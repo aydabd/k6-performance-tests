@@ -44,7 +44,7 @@ class HttpHeaders {
      */
     constructor(options = {}) {
         // Desctructure the options object to get the headers and authenticator and set default values if not provided
-        let { headers = {}, authenticator = {} } = options;
+        let { headers = DEFAULT_API_HEADERS, authenticator = {} } = options;
         if (!authenticator) {
             console.warn('No authenticator provided.'); // eslint-disable-line no-undef
             return Object.assign(options, { HttpHeadersInstance: this }, { headers: headers });
@@ -72,7 +72,9 @@ class HttpHeaders {
             console.debug('Basic auth token is not set.'); // eslint-disable-line no-undef
             return options;
         }
-        options.headers.Authorization = `Basic ${basicAuth}`;
+        // set the Authorization header with the basic auth token
+        options.headers = options.headers || {};
+        options.headers = Object.assign(options.headers, { Authorization: `Basic ${basicAuth}` });
         return options;
     }
 
@@ -93,7 +95,9 @@ class HttpHeaders {
             console.debug('Token bearer is not set.'); // eslint-disable-line no-undef
             return options;
         }
-        options.headers.Authorization = `Bearer ${token}`;
+        // set the Authorization header with the token bearer
+        options.headers = options.headers || {};
+        options.headers = Object.assign(options.headers, { Authorization: `Bearer ${token}` });
         return options;
     }
 
@@ -106,7 +110,7 @@ class HttpHeaders {
         if (options.username && options.password && !options.headers.Authorization) {
             options = this.addBasicAuthorization(options);
         }
-        if (options.token && !options.headers.Authorization) {
+        if (options.token) {
             options = this.addTokenBearerAuthorization(options);
         }
         return options;
@@ -147,7 +151,7 @@ class HttpOptionsGenerator {
         options.baseURL = new BaseUrl(options).baseURL;
         options.authenticator = new Authenticator(options);
         options.headers = new HttpHeaders(options);
-        options.headers = Object.assign(DEFAULT_API_HEADERS, options.headers);
+        // options.headers = Object.assign(DEFAULT_API_HEADERS, options.headers);
         return options;
     }
 }
@@ -219,7 +223,7 @@ class HttpClient {
             return ''; // eller hantera felet på ett lämpligt sätt
         }
 
-        // Change underscores to hyphens in the path segments and remove empty segments
+        Change underscores to hyphens in the path segments and remove empty segments
         this.pathSegments = this.pathSegments.map(segment =>
             segment ? (isNaN(segment) ? segment.replace(/_/g, '-') : segment) : ''
         );
