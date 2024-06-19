@@ -127,20 +127,11 @@ __ci_deployment_hwclock_sync() {
 #                             -v latest
 ################################################################################
 __ci_deployment_run_test() {
-    test_script_dir=""
-    k6_config_file=""
-    server_address=""
+    test_script_dir="$1"
+    k6_config_file="$2"
+    server_address="$3"
     docker_args="--rm -it -u $(id -u):$(id -g)"
     test_script_resp=""
-
-    while getopts "d:k:s:" opt; do
-        case $opt in
-            d) test_script_dir=$OPTARG ;;
-            k) k6_config_file=$OPTARG ;;
-            s) server_address=$OPTARG ;;
-            \?) printf "Invalid option: -$OPTARG\n" && exit 1 ;;
-        esac
-    done
 
     server_address="${server_address:-$DEFAULT_API_SERVER}"
     k6_config_file="${k6_config_file:-$DEFAULT_K6_CONFIG_FILE}"
@@ -276,6 +267,8 @@ main() {
     k6_config_file="${k6_config_file:-$DEFAULT_K6_CONFIG_FILE}"
     version="${version:-$VERSION}"
 
+    printf "Running the tests for the test script image: $test_script_image\n"
+
     if [ -z "$test_script_image" ]; then
         printf "${RED}The test scripts image is required to run the tests${NC}\n"
         printf "Please provide the test scripts image using the -d flag\n"
@@ -292,7 +285,7 @@ main() {
 
     __ci_deployment_run_external_services
 
-    __ci_deployment_run_test -d $test_script_image -k $k6_config_file -s $server_address
+    __ci_deployment_run_test $test_script_image $k6_config_file $server_address
 }
 
 main "$@"
