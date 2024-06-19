@@ -154,7 +154,7 @@ COPY --chown=k6:k6 ./k6-config-options ${PERFORMANCE_K6_CONFIG_DIR}
 COPY --chown=k6:k6 ./k6-config-options/default-test-config.json "${K6_DEFAULT_CONFIGURATION_FILE}"
 
 # Copy the static files to the container
-COPY --chown=k6:k6 ./static ${WORK_DIR}/static
+# COPY --chown=k6:k6 ./static ${WORK_DIR}/static
 
 # Define a volume to allow test logs and results to be saved outside the container
 VOLUME ${PERFORMANCE_K6_TEST_LOG_DIR}
