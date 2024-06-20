@@ -1,8 +1,3 @@
-version: '3.8'
-
-networks:
-  k6-webnet:
-
 services:
   influxdb:
     image: influxdb:latest
@@ -98,3 +93,6 @@ volumes:
   k6-influxdb-data: {}
   k6-influxdb-config: {}
   k6-grafana-data: {}
+
+networks:
+  k6-webnet:
