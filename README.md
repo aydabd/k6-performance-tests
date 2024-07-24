@@ -1,4 +1,4 @@
-# Performance Tests for via K6
+# Performance Tests via K6
 
 This project contains k6 tests for non-functional testing (load testing, stress testing, spike, etc.), packaged and ready to run with Docker. By using Docker, you can easily run your tests without having to install k6 or any other dependencies directly on your machine, apart from Docker itself.
 
