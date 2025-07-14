@@ -85,15 +85,15 @@ export default function () {
 
 
     group('3. Verify that breeds with path variable `id` returns a 200 status code', () => {
-        dynamicClient.api.v2.breeds(1).get();
+        dynamicClient.api.v2.breeds('dd9362cc-52e0-462d-b856-fccdcf24b140').get();
     });
 
     group('4. Verify that the SOAP request returns a 200 status code', () => {
         let soapOptions = {
-            host: 'webservices.oorsprong.org',
+            host: 'www.dataaccess.com',
             headers: {
                 "Content-Type": "text/xml; charset=utf-8",
-                "SOAPAction": "http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso/ListOfCountryNamesByName"
+                "SOAPAction": "https://www.dataaccess.com/webservicesserver/NumberConversion.wso/NumberToWords"
             }
         };
 
@@ -104,15 +104,17 @@ export default function () {
                            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                            xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                 <soap:Body>
-                    <ListOfCountryNamesByName xmlns="http://www.oorsprong.org/websamples.countryinfo"/>
+                    <NumberToWords xmlns="http://www.dataaccess.com/webservicesserver/">
+                        <ubiNum>256</ubiNum>
+                    </NumberToWords>
                 </soap:Body>
             </soap:Envelope>
         `;
 
         dynamicClient.xml.post({
             queryParams: {
-                soapPath: 'websamples.countryinfo/CountryInfoService.wso',
-                soapAction: 'http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso/ListOfCountryNamesByName',
+                soapPath: 'webservicesserver/numberconversion.wso',
+                soapAction: 'https://www.dataaccess.com/webservicesserver/NumberConversion.wso/NumberToWords',
                 soapBody: soapBody
             }
         });
