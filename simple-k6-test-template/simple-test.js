@@ -7,8 +7,8 @@
  * k6 run simple-test.js
  * # Or by using build the docker image and run the test
  * docker build -t simple-k6-test-template .
- * docker -v run -i --rm --net=host -e API_SERVER=test-api.k6.io simple-k6-test-template:latest
- * docker run -i --rm --net=host -e API_SERVER=test-api.k6.io -e API_USERNAME=foo -e API_PASSWORD=bar simple-template-test
+ * docker -v run -i --rm --net=host -e API_SERVER=server-address simple-k6-test-template:latest
+ * docker run -i --rm --net=host -e API_SERVER=server-address -e API_USERNAME=foo -e API_PASSWORD=bar simple-template-test
  * ```
  * @author Aydin Abdi <ayd.abd@gmail.com>
  * @license MIT
@@ -18,7 +18,7 @@ import { group, sleep } from 'k6';
 import { HttpClientFactory } from '../src/clients/http-client.js';
 
 // Define environment variables
-const K6_API_SERVER = __ENV.API_SERVER || 'test-api.k6.io'; // eslint-disable-line no-undef
+const K6_API_SERVER = __ENV.API_SERVER || 'dogapi.dog'; // eslint-disable-line no-undef
 const DEFAULT_API_HEADERS = {
     "Content-Type": "application/json",
     "User-Agent": "k6-client",
@@ -75,24 +75,20 @@ export default function () {
     // Create a new HttpClientFactory
     let { dynamicClient } = new HttpClientFactory(httpOpt);
 
-    group('1. Verify that the get with query parameters returns a 200 status code', () => {
-        dynamicClient.public.crocodiles.get({queryParams: {format: 'json'}});
+    group('1. Verify that breeds list returns a 200 status code', () => {
+        dynamicClient.api.v2.breeds.get();https: // https://dogapi.dog/api/v2/breeds
     });
 
-    group('2. Verify that the get without query parameters returns a 200 status code', () => {
-        dynamicClient.public.crocodiles.get();
-    });
-
-    group('3. Verify that the get with crocodile id and query parameters returns a 200 status code', () => {
-        dynamicClient.public.crocodiles(1).get({queryParams: {format: 'json'}});
+    group('2. Verify that facts with query parameters returns a 200 status code', () => {
+        dynamicClient.api.v2.facts.get({queryParams: {limit: 1}});
     });
 
 
-    group('4. Verify that the get with crocodile id without query parameters returns a 200 status code', () => {
-        dynamicClient.public.crocodiles(1).get();
+    group('3. Verify that breeds with path variable `id` returns a 200 status code', () => {
+        dynamicClient.api.v2.breeds(1).get();
     });
 
-    group('5. Verify that the soap request returns a 200 status code', () => {
+    group('4. Verify that the soap request returns a 200 status code', () => {
         let soapOptions = {
             host: 'www.w3schools.com',
             headers: {
