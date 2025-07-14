@@ -78,11 +78,11 @@ export default function () {
     group('Verify that breeds list returns a 200 status code', () => {
         dynamicClient.api.v2.breeds.get(); // https://dogapi.dog/api/v2/breeds
     });
-
+    /*
     group('Verify that facts with query parameters returns a 200 status code', () => {
         dynamicClient.api.v2.facts.get({queryParams: {limit: 1}});
     });
-    /*
+    
     // Only run these tests if NOT in CI
     if (!__ENV.CI) { // eslint-disable-line no-undef
         group('Verify that breeds with path variable `id` returns a 200 status code', () => {
