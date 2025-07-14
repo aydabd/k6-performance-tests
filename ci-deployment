@@ -94,6 +94,12 @@ __ci_deployment_tear_down_external_services() {
 # Note: This requires sudo permission
 ####################################################
 __ci_deployment_hwclock_sync() {
+    # Skip syncing the hardware clock when running in CI environments
+    if [ -n "$CI" ]; then
+        printf "Skipping hardware clock sync in CI\n"
+        return
+    fi
+
     printf "Checking the date and time\n"
     printf "${ORANGE}The date and time: %s${NC}\n" "$(date)"
 
@@ -280,7 +286,7 @@ main() {
 
     ###########################################################
     # TODO: REMOVE THIS LINE AFTER FIXING THE TIME DRIFT ISSUE
-    __ci_deployment_hwclock_sync
+    [ -z "$CI" ] && __ci_deployment_hwclock_sync
     ###########################################################
 
     __ci_deployment_run_external_services

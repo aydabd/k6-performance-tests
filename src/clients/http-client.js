@@ -223,7 +223,7 @@ class HttpClient {
             return ''; // eller hantera felet på ett lämpligt sätt
         }
 
-        Change underscores to hyphens in the path segments and remove empty segments
+        // Change underscores to hyphens in the path segments and remove empty segments
         this.pathSegments = this.pathSegments.map(segment =>
             segment ? (isNaN(segment) ? segment.replace(/_/g, '-') : segment) : ''
         );
