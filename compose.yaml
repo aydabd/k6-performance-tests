@@ -1,4 +1,4 @@
-services:
+9services:
   influxdb:
     image: influxdb:latest
     networks:
@@ -66,6 +66,7 @@ services:
       - k6-template-influxdb-base
       - influxdb
       - nginx
+      - mock-api
     build:
       context: .
       dockerfile: simple-k6-test-template/Dockerfile
