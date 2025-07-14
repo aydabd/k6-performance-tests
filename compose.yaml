@@ -1,4 +1,4 @@
-9services:
+services:
   influxdb:
     image: influxdb:latest
     networks:
