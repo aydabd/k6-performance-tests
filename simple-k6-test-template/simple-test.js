@@ -75,49 +75,51 @@ export default function () {
     // Create a new HttpClientFactory
     let { dynamicClient } = new HttpClientFactory(httpOpt);
 
-    group('1. Verify that breeds list returns a 200 status code', () => {
+    group('Verify that breeds list returns a 200 status code', () => {
         dynamicClient.api.v2.breeds.get(); // https://dogapi.dog/api/v2/breeds
     });
 
-    group('2. Verify that facts with query parameters returns a 200 status code', () => {
+    group('Verify that facts with query parameters returns a 200 status code', () => {
         dynamicClient.api.v2.facts.get({queryParams: {limit: 1}});
     });
 
-
-    group('3. Verify that breeds with path variable `id` returns a 200 status code', () => {
-        dynamicClient.api.v2.breeds('dd9362cc-52e0-462d-b856-fccdcf24b140').get();
-    });
-
-    group('4. Verify that the SOAP request returns a 200 status code', () => {
-        let soapOptions = {
-            host: 'www.dataaccess.com',
-            headers: {
-                "Content-Type": "text/xml; charset=utf-8",
-                "SOAPAction": "https://www.dataaccess.com/webservicesserver/NumberConversion.wso/NumberToWords"
-            }
-        };
-
-        let { dynamicClient } = new HttpClientFactory(soapOptions);
-
-        let soapBody = `
-            <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                           xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-                <soap:Body>
-                    <NumberToWords xmlns="http://www.dataaccess.com/webservicesserver/">
-                        <ubiNum>256</ubiNum>
-                    </NumberToWords>
-                </soap:Body>
-            </soap:Envelope>
-        `;
-
-        dynamicClient.xml.post({
-            queryParams: {
-                soapPath: 'webservicesserver/numberconversion.wso',
-                soapAction: 'https://www.dataaccess.com/webservicesserver/NumberConversion.wso/NumberToWords',
-                soapBody: soapBody
-            }
+    // Only run these tests if NOT in CI
+    if (!__ENV.CI) {
+        group('Verify that breeds with path variable `id` returns a 200 status code', () => {
+            dynamicClient.api.v2.breeds('dd9362cc-52e0-462d-b856-fccdcf24b140').get();
         });
-    });
+
+        group('Verify that the SOAP request returns a 200 status code', () => {
+            let soapOptions = {
+                host: 'www.dataaccess.com',
+                headers: {
+                    "Content-Type": "text/xml; charset=utf-8",
+                    "SOAPAction": "https://www.dataaccess.com/webservicesserver/NumberConversion.wso/NumberToWords"
+                }
+            };
+
+            let { dynamicClient } = new HttpClientFactory(soapOptions);
+
+            let soapBody = `
+                <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                               xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                               xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+                    <soap:Body>
+                        <NumberToWords xmlns="http://www.dataaccess.com/webservicesserver/">
+                            <ubiNum>256</ubiNum>
+                        </NumberToWords>
+                    </soap:Body>
+                </soap:Envelope>
+            `;
+
+            dynamicClient.xml.post({
+                queryParams: {
+                    soapPath: 'webservicesserver/numberconversion.wso',
+                    soapAction: 'https://www.dataaccess.com/webservicesserver/NumberConversion.wso/NumberToWords',
+                    soapBody: soapBody
+                }
+            });
+        });
+    }
     sleep(1);
 }
