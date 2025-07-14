@@ -18,7 +18,8 @@ import { group, sleep } from 'k6';
 import { HttpClientFactory } from '../src/clients/http-client.js';
 
 // Define environment variables
-const K6_API_SERVER = __ENV.API_SERVER || 'dogapi.dog'; // eslint-disable-line no-undef
+const K6_API_SERVER = __ENV.API_SERVER || 'mock-api:3000'; // eslint-disable-line no-undef
+const SOAP_API_SERVER = __ENV.SOAP_SERVER || 'mock-api:3000'; // eslint-disable-line no-undef
 const DEFAULT_API_HEADERS = {
     "Content-Type": "application/json",
     "User-Agent": "k6-client",
@@ -69,6 +70,7 @@ export function teardown() {
 export default function () {
     const httpOpt = {
         host: K6_API_SERVER,
+        protocol: 'http',
         headers: DEFAULT_API_HEADERS,
     };
     // const httpOptions = new HttpOptionsGenerator(httpOpt);
@@ -90,7 +92,8 @@ export default function () {
 
     group('4. Verify that the SOAP request returns a 200 status code', () => {
         let soapOptions = {
-            host: 'www.dataaccess.com',
+            host: SOAP_API_SERVER,
+            protocol: 'http',
             headers: {
                 "Content-Type": "text/xml; charset=utf-8",
                 "SOAPAction": "https://www.dataaccess.com/webservicesserver/NumberConversion.wso/NumberToWords"

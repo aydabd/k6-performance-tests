@@ -89,6 +89,16 @@ services:
     environment:
       - K6_LOG_OUTPUT=none
 
+  mock-api:
+    build:
+      context: ./mock-server
+      dockerfile: Dockerfile
+    image: mock-api:latest
+    networks:
+      - k6-webnet
+    expose:
+      - "3000"
+
 volumes:
   k6-influxdb-data: {}
   k6-influxdb-config: {}
