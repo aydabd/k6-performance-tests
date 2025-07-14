@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 ##################################################################
 # Title: ci-deployment
 # Description: Run the tests using the test scripts image and clean up the docker containers, volumes, networks and images.
@@ -94,6 +94,12 @@ __ci_deployment_tear_down_external_services() {
 # Note: This requires sudo permission
 ####################################################
 __ci_deployment_hwclock_sync() {
+    # Skip syncing the hardware clock when running in CI environments
+    if [ -n "$CI" ]; then
+        printf "Skipping hardware clock sync in CI\n"
+        return
+    fi
+
     printf "Checking the date and time\n"
     printf "${ORANGE}The date and time: %s${NC}\n" "$(date)"
 
@@ -130,7 +136,12 @@ __ci_deployment_run_test() {
     test_script_dir="$1"
     k6_config_file="$2"
     server_address="$3"
-    docker_args="--rm -it -u $(id -u):$(id -g)"
+    docker_args=""
+    if [ -z "${CI}" ]; then
+        docker_args="--rm -it -u $(id -u):$(id -g)"
+    else
+        docker_args="--rm -u $(id -u):$(id -g)"
+    fi
     test_script_resp=""
 
     server_address="${server_address:-$DEFAULT_API_SERVER}"
@@ -280,7 +291,7 @@ main() {
 
     ###########################################################
     # TODO: REMOVE THIS LINE AFTER FIXING THE TIME DRIFT ISSUE
-    __ci_deployment_hwclock_sync
+    [ -z "$CI" ] && __ci_deployment_hwclock_sync
     ###########################################################
 
     __ci_deployment_run_external_services

@@ -7,8 +7,8 @@
  * k6 run simple-test.js
  * # Or by using build the docker image and run the test
  * docker build -t simple-k6-test-template .
- * docker -v run -i --rm --net=host -e API_SERVER=test-api.k6.io simple-k6-test-template:latest
- * docker run -i --rm --net=host -e API_SERVER=test-api.k6.io -e API_USERNAME=foo -e API_PASSWORD=bar simple-template-test
+ * docker -v run -i --rm --net=host -e API_SERVER=server-address simple-k6-test-template:latest
+ * docker run -i --rm --net=host -e API_SERVER=server-address -e API_USERNAME=foo -e API_PASSWORD=bar simple-template-test
  * ```
  * @author Aydin Abdi <ayd.abd@gmail.com>
  * @license MIT
@@ -18,7 +18,7 @@ import { group, sleep } from 'k6';
 import { HttpClientFactory } from '../src/clients/http-client.js';
 
 // Define environment variables
-const K6_API_SERVER = __ENV.API_SERVER || 'test-api.k6.io'; // eslint-disable-line no-undef
+const K6_API_SERVER = __ENV.API_SERVER || 'dogapi.dog'; // eslint-disable-line no-undef
 const DEFAULT_API_HEADERS = {
     "Content-Type": "application/json",
     "User-Agent": "k6-client",
@@ -75,42 +75,51 @@ export default function () {
     // Create a new HttpClientFactory
     let { dynamicClient } = new HttpClientFactory(httpOpt);
 
-    group('1. Verify that the get with query parameters returns a 200 status code', () => {
-        dynamicClient.public.crocodiles.get({queryParams: {format: 'json'}});
+    group('Verify that breeds list returns a 200 status code', () => {
+        dynamicClient.api.v2.breeds.get(); // https://dogapi.dog/api/v2/breeds
     });
-
-    group('2. Verify that the get without query parameters returns a 200 status code', () => {
-        dynamicClient.public.crocodiles.get();
+    /*
+    group('Verify that facts with query parameters returns a 200 status code', () => {
+        dynamicClient.api.v2.facts.get({queryParams: {limit: 1}});
     });
+    
+    // Only run these tests if NOT in CI
+    if (!__ENV.CI) { // eslint-disable-line no-undef
+        group('Verify that breeds with path variable `id` returns a 200 status code', () => {
+            dynamicClient.api.v2.breeds('dd9362cc-52e0-462d-b856-fccdcf24b140').get();
+        });
 
-    group('3. Verify that the get with crocodile id and query parameters returns a 200 status code', () => {
-        dynamicClient.public.crocodiles(1).get({queryParams: {format: 'json'}});
-    });
+        group('Verify that the SOAP request returns a 200 status code', () => {
+            let soapOptions = {
+                host: 'www.dataaccess.com',
+                headers: {
+                    "Content-Type": "text/xml; charset=utf-8",
+                    "SOAPAction": "https://www.dataaccess.com/webservicesserver/NumberConversion.wso/NumberToWords"
+                }
+            };
 
+            let { dynamicClient } = new HttpClientFactory(soapOptions);
 
-    group('4. Verify that the get with crocodile id without query parameters returns a 200 status code', () => {
-        dynamicClient.public.crocodiles(1).get();
-    });
+            let soapBody = `
+                <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                               xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                               xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+                    <soap:Body>
+                        <NumberToWords xmlns="http://www.dataaccess.com/webservicesserver/">
+                            <ubiNum>256</ubiNum>
+                        </NumberToWords>
+                    </soap:Body>
+                </soap:Envelope>
+            `;
 
-    group('5. Verify that the soap request returns a 200 status code', () => {
-        let soapOptions = {
-            host: 'www.w3schools.com',
-            headers: {
-                "Content-Type": "application/soap+xml",
-                "SOAPAction": "https://www.w3schools.com/xml/CelsiusToFahrenheit"
-            }
-        };
-        let { dynamicClient } = new HttpClientFactory(soapOptions);
-        let soapBody = `
-            <soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
-                <soap12:Body>
-                    <FahrenheitToCelsius xmlns="https://www.w3schools.com/xml/">
-                        <Fahrenheit>75</Fahrenheit>
-                    </FahrenheitToCelsius>
-                </soap12:Body>
-            </soap12:Envelope>`;
-        dynamicClient.xml.post({queryParams: {soapPath: 'tempconvert.asmx', soapAction: 'https://www.w3schools.com/xml/FahrenheitToCelsius', soapBody: soapBody}});
-    });
-
+            dynamicClient.xml.post({
+                queryParams: {
+                    soapPath: 'webservicesserver/numberconversion.wso',
+                    soapAction: 'https://www.dataaccess.com/webservicesserver/NumberConversion.wso/NumberToWords',
+                    soapBody: soapBody
+                }
+            });
+        });
+    }*/
     sleep(1);
 }

@@ -139,6 +139,7 @@ const authenticator = new Authenticator('username', 'password');
         * [new BasicAuthenticator(options)](#new_module_http-auth..BasicAuthenticator_new)
         * [.getAuth()](#module_http-auth..BasicAuthenticator+getAuth) ⇒ <code>string</code>
     * [~TokenBearerAuthenticator](#module_http-auth..TokenBearerAuthenticator) ⇐ <code>IAuthenticator</code>
+        * [new TokenBearerAuthenticator()](#new_module_http-auth..TokenBearerAuthenticator_new)
     * [~Authenticator](#module_http-auth..Authenticator)
         * [new Authenticator()](#new_module_http-auth..Authenticator_new)
         * [new Authenticator(options)](#new_module_http-auth..Authenticator_new)
@@ -202,6 +203,14 @@ Class to handle token bearer authentication.
 
 **Kind**: inner class of [<code>http-auth</code>](#module_http-auth)  
 **Extends**: <code>IAuthenticator</code>  
+<a name="new_module_http-auth..TokenBearerAuthenticator_new"></a>
+
+#### new TokenBearerAuthenticator()
+**Example**  
+```javascript
+const tokenBearerAuthenticator = new TokenBearerAuthenticator({ token: 'token' });
+tokenBearerAuthenticator.getAuth();
+```
 <a name="module_http-auth..Authenticator"></a>
 
 ### http-auth~Authenticator

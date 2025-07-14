@@ -81,9 +81,9 @@
 # Set ARGs to define version numbers for xk6
 ARG XK6_IMAGE="grafana/xk6"
 ARG XK6_VERSION="latest"
-ARG ALPINE_VERSION=3.17
+ARG ALPINE_VERSION=3.20
 # Use the grafana/xk6 as the base image to build k6 with extension
-FROM ${XK6_IMAGE}:${XK6_VERSION} as builder
+FROM ${XK6_IMAGE}:${XK6_VERSION} AS builder
 
 # Set ARGs to allow overriding variables during build phase
 ARG K6_VERSION="latest"
@@ -95,10 +95,10 @@ ARG XK6_EXTENSION_VERSION="latest"
 WORKDIR /xk6
 
 # Build k6 with extension
-RUN xk6 build "${K6_VERSION}" --with "${SOURCE_URL}/${XK6_EXTENSION_NAME}@${XK6_EXTENSION_VERSION}"
+RUN xk6 build --with "${SOURCE_URL}/${XK6_EXTENSION_NAME}@${XK6_EXTENSION_VERSION}"
 
 # Create a new stage to build the final base image
-FROM alpine:${ALPINE_VERSION} as base
+FROM alpine:${ALPINE_VERSION} AS base
 
 # Define ARGs to allow overriding variables during the build phase
 ARG IMAGE_NAME="k6-template-influxdb-base" \

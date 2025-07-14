@@ -23,7 +23,7 @@ To run your k6 tests, please use the ci-deployment script:
     # Run with all default values (server: test-api.k6.io, k6 config: ./k6-config-options/default-test-config.json)
     ./ci-deployment -d simple-k6-test-template
     # Run tests against a different server address and k6 config
-    ./ci-deployment -d simple-k6-test-template -k ./k6-confiig-options/my-config.json -s server-address-to-use
+    ./ci-deployment -d simple-k6-test-template -k ./k6-config-options/my-config.json -s server-address-to-use
 ```
 
 For more information about the ci-deployment script, run the script with the `-h` argument:
@@ -151,6 +151,10 @@ Documentation for the source code can be found here:
 ## Summary
 
 By following these steps, you've used Docker to build an image for your k6 tests and run them isolated from your local environment. This approach ensures that your tests can be run consistently across different environments and simplifies the process of getting started with load testing.
+
+## Continuous Integration
+
+The repository includes a GitHub Actions workflow to lint the code, generate documentation, and run integration tests using the `ci-deployment` script.
 
 ## Contributing to the Project
 
