@@ -84,7 +84,7 @@ export default function () {
     });
 
     // Only run these tests if NOT in CI
-    if (!__ENV.CI) {
+    if (!__ENV.CI) { // eslint-disable-line no-undef
         group('Verify that breeds with path variable `id` returns a 200 status code', () => {
             dynamicClient.api.v2.breeds('dd9362cc-52e0-462d-b856-fccdcf24b140').get();
         });
