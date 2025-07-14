@@ -220,7 +220,7 @@ class HttpClient {
         // Check first that pathSegments is an array and contains values
         if (!Array.isArray(this.pathSegments)) {
             console.error('pathSegments is not an array'); // eslint-disable-line no-undef
-            return ''; // eller hantera felet på ett lämpligt sätt
+            return '';
         }
 
         // Change underscores to hyphens in the path segments and remove empty segments
