@@ -152,6 +152,10 @@ Documentation for the source code can be found here:
 
 By following these steps, you've used Docker to build an image for your k6 tests and run them isolated from your local environment. This approach ensures that your tests can be run consistently across different environments and simplifies the process of getting started with load testing.
 
+## Continuous Integration
+
+The repository includes a GitHub Actions workflow to lint the code, generate documentation, and run integration tests using the `ci-deployment` script.
+
 ## Contributing to the Project
 
 We welcome improvement contributions from everyone! Here are some ways you can contribute to this project:
