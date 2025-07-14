@@ -23,7 +23,7 @@ To run your k6 tests, please use the ci-deployment script:
     # Run with all default values (server: test-api.k6.io, k6 config: ./k6-config-options/default-test-config.json)
     ./ci-deployment -d simple-k6-test-template
     # Run tests against a different server address and k6 config
-    ./ci-deployment -d simple-k6-test-template -k ./k6-confiig-options/my-config.json -s server-address-to-use
+    ./ci-deployment -d simple-k6-test-template -k ./k6-config-options/my-config.json -s server-address-to-use
 ```
 
 For more information about the ci-deployment script, run the script with the `-h` argument:
