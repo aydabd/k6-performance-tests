@@ -76,7 +76,7 @@ export default function () {
     let { dynamicClient } = new HttpClientFactory(httpOpt);
 
     group('1. Verify that breeds list returns a 200 status code', () => {
-        dynamicClient.api.v2.breeds.get();https: // https://dogapi.dog/api/v2/breeds
+        dynamicClient.api.v2.breeds.get(); // https://dogapi.dog/api/v2/breeds
     });
 
     group('2. Verify that facts with query parameters returns a 200 status code', () => {
