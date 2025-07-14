@@ -136,7 +136,12 @@ __ci_deployment_run_test() {
     test_script_dir="$1"
     k6_config_file="$2"
     server_address="$3"
-    docker_args="--rm -it -u $(id -u):$(id -g)"
+    docker_args=""
+    if [ -z "${CI}" ]; then
+        docker_args="--rm -it -u $(id -u):$(id -g)"
+    else
+        docker_args="--rm -u $(id -u):$(id -g)"
+    fi
     test_script_resp=""
 
     server_address="${server_address:-$DEFAULT_API_SERVER}"
