@@ -88,25 +88,34 @@ export default function () {
         dynamicClient.api.v2.breeds(1).get();
     });
 
-    group('4. Verify that the soap request returns a 200 status code', () => {
+    group('4. Verify that the SOAP request returns a 200 status code', () => {
         let soapOptions = {
-            host: 'www.w3schools.com',
+            host: 'webservices.oorsprong.org',
             headers: {
-                "Content-Type": "application/soap+xml",
-                "SOAPAction": "https://www.w3schools.com/xml/CelsiusToFahrenheit"
+                "Content-Type": "text/xml; charset=utf-8",
+                "SOAPAction": "http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso/ListOfCountryNamesByName"
             }
         };
-        let { dynamicClient } = new HttpClientFactory(soapOptions);
-        let soapBody = `
-            <soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
-                <soap12:Body>
-                    <FahrenheitToCelsius xmlns="https://www.w3schools.com/xml/">
-                        <Fahrenheit>75</Fahrenheit>
-                    </FahrenheitToCelsius>
-                </soap12:Body>
-            </soap12:Envelope>`;
-        dynamicClient.xml.post({queryParams: {soapPath: 'tempconvert.asmx', soapAction: 'https://www.w3schools.com/xml/FahrenheitToCelsius', soapBody: soapBody}});
-    });
 
+        let { dynamicClient } = new HttpClientFactory(soapOptions);
+
+        let soapBody = `
+            <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                           xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+                <soap:Body>
+                    <ListOfCountryNamesByName xmlns="http://www.oorsprong.org/websamples.countryinfo"/>
+                </soap:Body>
+            </soap:Envelope>
+        `;
+
+        dynamicClient.xml.post({
+            queryParams: {
+                soapPath: 'websamples.countryinfo/CountryInfoService.wso',
+                soapAction: 'http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso/ListOfCountryNamesByName',
+                soapBody: soapBody
+            }
+        });
+    });
     sleep(1);
 }
