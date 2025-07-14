@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 ##################################################################
 # Title: ci-deployment
 # Description: Run the tests using the test scripts image and clean up the docker containers, volumes, networks and images.
