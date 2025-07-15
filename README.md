@@ -36,6 +36,20 @@ For more information about the ci-deployment script, run the script with the `-h
     ./ci-deployment -h
 ```
 
+## Running Tests in Kubernetes
+
+You can also run the integration tests in a local Kubernetes cluster (for example k3s or kind) using the `k8s-deployment` script. Ensure that `kubectl` is configured to communicate with your cluster.
+
+```sh
+./k8s-deployment -d simple-k6-test-template
+```
+
+To remove the Kubernetes resources after the test has finished:
+
+```sh
+./k8s-deployment -c
+```
+
 ## Viewing Test Results Via Grafana and influxdb
 
 To view test results via Grafana, access their UI at:
@@ -183,6 +197,6 @@ Please read our [CONTRIBUTING.md](CONTRIBUTING.md) file for more detailed inform
 
 Here is a list of improvements and features we plan to implement in the future. We welcome feedback and contributions that can help us realize these:
 
-- [ ] Implement CI/CD to run tests in Kubernetes clusters.
+- [x] Implement CI/CD to run tests in Kubernetes clusters.
 
 If you are interested in working on any of these points, or if you have other ideas, do not hesitate to open an issue or contact us directly.
