@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Simple script to run k6 tests in a local Kubernetes cluster.
+
+NAMESPACE="k6-tests"
+K8S_DIR="k8s"
+TEST_IMAGE=""
+
+usage() {
+    cat <<USAGE
+Usage: $(basename "$0") -d <test-image>
+
+Options:
+  -h            Show this help message
+  -d <image>    Name of the test image to run (required)
+  -c            Clean up Kubernetes resources
+USAGE
+}
+
+build_images() {
+    docker compose build --parallel
+}
+
+apply_manifests() {
+    kubectl apply -k "$K8S_DIR"
+}
+run_job() {
+    kubectl delete job simple-k6-test -n "$NAMESPACE" --ignore-not-found
+    TEST_IMAGE_FULL="${TEST_IMAGE}:latest"
+    env TEST_IMAGE="$TEST_IMAGE_FULL" envsubst < "$K8S_DIR/k6-job.yaml" | kubectl apply -f -
+    kubectl wait --for=condition=complete job/simple-k6-test -n "$NAMESPACE" --timeout=600s
+}
+
+
+
+cleanup() {
+    kubectl delete -k "$K8S_DIR" --ignore-not-found
+}
+
+main() {
+    local cleanup_flag=false
+    while getopts "hd:c" opt; do
+        case $opt in
+            h) usage; exit 0 ;;
+            d) TEST_IMAGE=$OPTARG ;;
+            c) cleanup_flag=true ;;
+            *) usage; exit 1 ;;
+        esac
+    done
+
+    if [ "$cleanup_flag" = true ]; then
+        cleanup
+        exit 0
+    fi
+
+    if [ -z "$TEST_IMAGE" ]; then
+        echo "Test image name is required" >&2
+        usage
+        exit 1
+    fi
+
+    build_images
+    apply_manifests
+    run_job
+}
+
+main "$@"
