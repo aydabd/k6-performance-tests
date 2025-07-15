@@ -38,7 +38,7 @@ For more information about the ci-deployment script, run the script with the `-h
 
 ## Running Tests in Kubernetes
 
-You can also run the integration tests in a local Kubernetes cluster (for example k3s or kind) using the `k8s-deployment` script. Ensure that `kubectl` is configured to communicate with your cluster.
+You can also run the integration tests in a local Kubernetes cluster (for example k3s, k3d, or kind) using the `k8s-deployment` script. Ensure that `kubectl` is configured to communicate with your cluster. If you use `k3d`, the script automatically imports the Docker images into the cluster. Set `K3D_CLUSTER_NAME` to override the default cluster name (`k6`). For other Kubernetes distributions make sure the images are available in a registry that your cluster can access.
 
 ```sh
 ./k8s-deployment -d simple-k6-test-template

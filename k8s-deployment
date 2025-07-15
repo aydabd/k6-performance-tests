@@ -4,6 +4,8 @@
 NAMESPACE="k6-tests"
 K8S_DIR="k8s"
 TEST_IMAGE=""
+IMAGES=(k6-template-influxdb-base simple-k6-test-template simple-k6-websocket-test)
+K3D_CLUSTER_NAME=${K3D_CLUSTER_NAME:-k6}
 
 usage() {
     cat <<USAGE
@@ -18,6 +20,15 @@ USAGE
 
 build_images() {
     docker compose build --parallel
+    import_images
+}
+
+import_images() {
+    if command -v k3d >/dev/null 2>&1; then
+        for image in "${IMAGES[@]}"; do
+            k3d image import "${image}:latest" -c "$K3D_CLUSTER_NAME" || true
+        done
+    fi
 }
 
 apply_manifests() {
@@ -27,7 +38,12 @@ run_job() {
     kubectl delete job simple-k6-test -n "$NAMESPACE" --ignore-not-found
     TEST_IMAGE_FULL="${TEST_IMAGE}:latest"
     env TEST_IMAGE="$TEST_IMAGE_FULL" envsubst < "$K8S_DIR/k6-job.yaml" | kubectl apply -f -
-    kubectl wait --for=condition=complete job/simple-k6-test -n "$NAMESPACE" --timeout=600s
+    if kubectl wait --for=condition=complete job/simple-k6-test -n "$NAMESPACE" --timeout=600s; then
+        kubectl logs job/simple-k6-test -n "$NAMESPACE"
+    else
+        kubectl logs job/simple-k6-test -n "$NAMESPACE" || true
+        return 1
+    fi
 }
 
 
