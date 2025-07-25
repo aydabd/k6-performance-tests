@@ -14,15 +14,15 @@ ORANGE='\033[0;33m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 
-
 EXTERNAL_SERVICES="grafana influxdb nginx"
-DEFAULT_API_SERVER="test-api.k6.io"
+DEFAULT_API_SERVER="dogapi.dog"
 DEFAULT_K6_CONFIG_FILE="./k6-config-options/default-test-config.json"
 
 # Directory of test scripts
 TEST_SCRIPTS_DIR="simple-k6-test-template simple-k6-websocket-test"
 VERSION="latest"
 
+export API_SERVER="${API_SERVER:-$DEFAULT_API_SERVER}"
 
 # Usage of the ci-deployment
 __ci_deployment_usage() {
@@ -40,7 +40,7 @@ Options:
     -d: The test scripts image to run the tests (required for running the tests)
     -b: Build the docker files (default: false)
     -v: The version of the test scripts image (default: latest)
-    -s: The server address to run the tests (default: test-api.k6.io)
+    -s: The server address to run the tests (default: dogapi.dog)
     -k: The k6 config file to run the tests (default: ./k6-config-options/default-test-config.json)
     -n: Reload the nginx server (default: false)
     -t: Tear down the external services: ${EXTERNAL_SERVICES} (default: false)
@@ -58,10 +58,10 @@ Example:
 
     Build all images defined in the compose file
 
-    $(basename $0) -d test-scripts-dir -s test-api.k6.io -k ./k6-config-options/default-test-config.json
+    $(basename $0) -d test-scripts-dir -s dogapi.dog -k ./k6-config-options/default-test-config.json
 
     Starts the external services: ${EXTERNAL_SERVICES} and runs the tests for the test scripts directory: test-scripts-dir
-    against the server address: test-api.k6.io using the k6 config file: ./k6-config-options/default-test-config.json
+    against the server address: dogapi.dog using the k6 config file: ./k6-config-options/default-test-config.json
 
 EOF
 }
@@ -125,10 +125,10 @@ __ci_deployment_hwclock_sync() {
 #   -k(type string): The k6 config file to run the tests
 #                   (default: ./k6-config-options/default-test-config.json)
 #   -s(type string): The server address to run the tests
-#                   (default: test-api.k6.io)
+#                   (default: dogapi.dog)
 #   Example:
 #   __ci_deployment_run_test -d test-scripts-dir \
-#                             -s test-api.k6.io \
+#                             -s dogapi.dog \
 #                             -k ./k6-config-options/default-test-config.json \
 #                             -v latest
 ################################################################################
@@ -142,9 +142,17 @@ __ci_deployment_run_test() {
     else
         docker_args="--rm -u $(id -u):$(id -g)"
     fi
+
     test_script_resp=""
 
-    server_address="${server_address:-$DEFAULT_API_SERVER}"
+    # If server_address is not set by args, check environment, then fallback to default
+    if [ -z "$server_address" ]; then
+        if [ -n "$API_SERVER" ]; then
+            server_address="$API_SERVER"
+        else
+            server_address="$DEFAULT_API_SERVER"
+        fi
+    fi
     k6_config_file="${k6_config_file:-$DEFAULT_K6_CONFIG_FILE}"
 
     server_address_args="-e API_SERVER=$server_address"
@@ -161,9 +169,16 @@ __ci_deployment_run_test() {
         exit 1
     fi
 
-    docker_args="$docker_args -v $(pwd)/$test_script_dir:/performance-k6/test-logs"
+    mkdir "$test_script_dir/test-logs" 2>/dev/null || true
+
+    docker_args="$docker_args"
 
     printf "ci-deployment-run-test: Running the test for test dir: $test_script_dir\n"
+    printf "[DEBUG] Docker Compose Run Command:\n"
+    printf "docker compose run %s %s %s %s\n" "$server_address_args" "$k6_config_file_args" "$docker_args" "$test_script_dir"
+    printf "[DEBUG] Environment Variables:\n"
+    printf "  API_SERVER=%s\n" "$server_address"
+    printf "  PERFORMANCE_K6_OPTION_CONFIG_PATH=%s\n" "$k6_config_file"
     docker compose run $server_address_args $k6_config_file_args $docker_args $test_script_dir
 }
 
@@ -289,10 +304,13 @@ main() {
 
     __ci_deployment_compose_build_images
 
-    ###########################################################
+    ###################################################################
+    # Sync the hardware clock with the system clock
+    # This is required to avoid the time drift issue(WSL2 windows)
     # TODO: REMOVE THIS LINE AFTER FIXING THE TIME DRIFT ISSUE
     [ -z "$CI" ] && __ci_deployment_hwclock_sync
-    ###########################################################
+    # This is a temporary fix for the time drift issue for WSL2 windows
+    ###################################################################
 
     __ci_deployment_run_external_services
 

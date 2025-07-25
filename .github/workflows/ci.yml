@@ -13,14 +13,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install
-      - run: npm run eslint
-      - run: npm run markdownlint
-      - run: npm run jsdoc2mdClient
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Install dependencies
+        run: npm ci
+      - name: Run pre-commit hooks
+        run: pip install pre-commit && pre-commit run --all-files -c .githooks.d/.pre-commit-config.yaml
 
   integration-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run integration tests
+      - name: Run integration tests for http client
         run: ./ci-deployment -d simple-k6-test-template
+      - name: Run integration tests for ws client
+        run: ./ci-deployment -d simple-k6-websocket-test -s websocket-echo
