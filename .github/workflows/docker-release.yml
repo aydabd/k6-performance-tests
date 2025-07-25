@@ -26,8 +26,13 @@ jobs:
       - name: Build and push Docker image
         run: |
           docker build -t ghcr.io/${{ github.repository }}/k6-template-influxdb-base:${{ github.ref_name }} .
-          docker build -t ghcr.io/${{ github.repository }}/simple-k6-test-template:${{ github.ref_name }} -f simple-k6-test-template/Dockerfile .
           docker push ghcr.io/${{ github.repository }}/k6-template-influxdb-base:${{ github.ref_name }}
+
+          docker build \
+            --build-arg BASE_IMAGE_NAME=ghcr.io/${{ github.repository }}/k6-template-influxdb-base \
+            --build-arg BASE_IMAGE_VERSION=${{ github.ref_name }} \
+            -t ghcr.io/${{ github.repository }}/simple-k6-test-template:${{ github.ref_name }} \
+            -f simple-k6-test-template/Dockerfile .
           docker push ghcr.io/${{ github.repository }}/simple-k6-test-template:${{ github.ref_name }}
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
