@@ -25,7 +25,7 @@
 #           -v $(pwd)/test-logs:/performance-k6/test-logs \
 #           -u "$(id -u):$(id -g)" \
 #           -e API_USERNAME="username" -e API_PASSWORD="password" \
-#           -e API_SERVER="test-api.k6.io" \
+#           -e API_SERVER="dogapi.dog" \
 #           -e K6_INFLUXDB_TOKEN="token" \
 #           simple-k6-test-template:latest
 # Notice:
@@ -68,7 +68,7 @@ ARG PERFORMANCE_K6_TEST_FOLDER_NAME="simple-k6-test-template" \
 ARG PERFORMANCE_K6_TEST_LOG_DIR_NAME="test-logs"
 
 # These are the default values for the API service that the test will run against
-ARG API_SERVER="test-api.k6.io"
+ARG API_SERVER="dogapi.dog"
 
 # These are the same environment variables that are used in the official k6 image
 ARG K6_OUT="xk6-influxdb=http://influxdb:8086" \

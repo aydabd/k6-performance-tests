@@ -18,6 +18,15 @@
 </dd>
 </dl>
 
+## Classes
+
+<dl>
+<dt><a href="#PathFormatter">PathFormatter</a></dt>
+<dd></dd>
+<dt><a href="#Formatter">Formatter</a></dt>
+<dd></dd>
+</dl>
+
 <a name="module_base-url"></a>
 
 ## base-url
@@ -72,6 +81,7 @@ Create a new HttpBaseUrl instance.
 | options.baseURL | <code>string</code> | The base URL for the API requests. |
 | options.host | <code>string</code> | The hostname of the API. |
 | options.protocol | <code>string</code> | The protocol for the API requests. |
+| options.port | <code>string</code> | The port for the API requests. |
 
 <a name="module_base-url..BaseUrl"></a>
 
@@ -111,6 +121,7 @@ Create a new HttpBaseUrl instance.
 | options.baseURL | <code>string</code> | The base URL for the API requests. |
 | options.host | <code>string</code> | The hostname of the API. |
 | options.protocol | <code>string</code> | The protocol for the API requests. |
+| options.port | <code>string</code> | The port for the API requests. |
 
 <a name="module_http-auth"></a>
 
@@ -339,6 +350,7 @@ This module contains the HttpClientFactory, HttpClient, HttpHeaders, HttpOptions
     * [~HttpClient](#module_http-client..HttpClient)
         * [new HttpClient()](#new_module_http-client..HttpClient_new)
         * [new HttpClient(options)](#new_module_http-client..HttpClient_new)
+        * [.registerSegmentFormat(segment, formatFunction)](#module_http-client..HttpClient+registerSegmentFormat)
         * [.reset()](#module_http-client..HttpClient+reset) ⇒ <code>void</code>
         * [.buildUrl()](#module_http-client..HttpClient+buildUrl) ⇒ <code>string</code>
         * [.buildQueryParams(queryParams)](#module_http-client..HttpClient+buildQueryParams) ⇒ <code>string</code>
@@ -349,6 +361,7 @@ This module contains the HttpClientFactory, HttpClient, HttpHeaders, HttpOptions
     * [~HttpClient](#module_http-client..HttpClient)
         * [new HttpClient()](#new_module_http-client..HttpClient_new)
         * [new HttpClient(options)](#new_module_http-client..HttpClient_new)
+        * [.registerSegmentFormat(segment, formatFunction)](#module_http-client..HttpClient+registerSegmentFormat)
         * [.reset()](#module_http-client..HttpClient+reset) ⇒ <code>void</code>
         * [.buildUrl()](#module_http-client..HttpClient+buildUrl) ⇒ <code>string</code>
         * [.buildQueryParams(queryParams)](#module_http-client..HttpClient+buildQueryParams) ⇒ <code>string</code>
@@ -607,6 +620,7 @@ Create a new HttpOptionsGenerator instance.
 * [~HttpClient](#module_http-client..HttpClient)
     * [new HttpClient()](#new_module_http-client..HttpClient_new)
     * [new HttpClient(options)](#new_module_http-client..HttpClient_new)
+    * [.registerSegmentFormat(segment, formatFunction)](#module_http-client..HttpClient+registerSegmentFormat)
     * [.reset()](#module_http-client..HttpClient+reset) ⇒ <code>void</code>
     * [.buildUrl()](#module_http-client..HttpClient+buildUrl) ⇒ <code>string</code>
     * [.buildQueryParams(queryParams)](#module_http-client..HttpClient+buildQueryParams) ⇒ <code>string</code>
@@ -622,9 +636,16 @@ Class representing a client for HTTP requests, supporting dynamic endpoint const
 
 **Example**  
 ```javascript
-const client = new HttpClient({ host: 'api.example.com', port: 443, protocol: 'https' });
+const client = new HttpClient(
+  {
+    host: 'api.example.com',
+    port: 443,
+    protocol: 'https'
+    formatter: PathFormatter.toKebabCase
+  }
+);
 client.request('get', { queryParams: { key1: 'value1' } });
-client.createProxy().api.v2.users(1).get();
+client.createProxy().api.v2.users_profile(1).get();
 ```
 **Example**  
 Use the HttpClient to send a request to the API.
@@ -633,7 +654,7 @@ const genOptions = generateOptions('api.example.com', 'username', 'password');
 const httpC = new HttpClient(genOptions);
 let headers = httpC.session.k6params.headers;
 headers["Content-Type"] = "application/json";
-httpC.session.put(`/api/test/user/${caseId}`, JSON.stringify({ id: caseId}), { headers: headers });
+httpC.session.put(`/api/test/user_profile/${caseId}`, JSON.stringify({ id: caseId}), { headers: headers });
 ```
 <a name="new_module_http-client..HttpClient_new"></a>
 
@@ -644,6 +665,18 @@ Create a new HttpClient instance.
 | Param | Type | Description |
 | --- | --- | --- |
 | options | <code>object</code> | The options to configure the client. |
+
+<a name="module_http-client..HttpClient+registerSegmentFormat"></a>
+
+#### httpClient.registerSegmentFormat(segment, formatFunction)
+Register a custom format for a specific segment.
+
+**Kind**: instance method of [<code>HttpClient</code>](#module_http-client..HttpClient)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| segment | <code>string</code> | The segment to apply the custom format to. |
+| formatFunction | <code>function</code> | The formatting function to apply to the segment. |
 
 <a name="module_http-client..HttpClient+reset"></a>
 
@@ -751,6 +784,7 @@ Create a dynamic client proxy.
 * [~HttpClient](#module_http-client..HttpClient)
     * [new HttpClient()](#new_module_http-client..HttpClient_new)
     * [new HttpClient(options)](#new_module_http-client..HttpClient_new)
+    * [.registerSegmentFormat(segment, formatFunction)](#module_http-client..HttpClient+registerSegmentFormat)
     * [.reset()](#module_http-client..HttpClient+reset) ⇒ <code>void</code>
     * [.buildUrl()](#module_http-client..HttpClient+buildUrl) ⇒ <code>string</code>
     * [.buildQueryParams(queryParams)](#module_http-client..HttpClient+buildQueryParams) ⇒ <code>string</code>
@@ -766,9 +800,16 @@ Class representing a client for HTTP requests, supporting dynamic endpoint const
 
 **Example**  
 ```javascript
-const client = new HttpClient({ host: 'api.example.com', port: 443, protocol: 'https' });
+const client = new HttpClient(
+  {
+    host: 'api.example.com',
+    port: 443,
+    protocol: 'https'
+    formatter: PathFormatter.toKebabCase
+  }
+);
 client.request('get', { queryParams: { key1: 'value1' } });
-client.createProxy().api.v2.users(1).get();
+client.createProxy().api.v2.users_profile(1).get();
 ```
 **Example**  
 Use the HttpClient to send a request to the API.
@@ -777,7 +818,7 @@ const genOptions = generateOptions('api.example.com', 'username', 'password');
 const httpC = new HttpClient(genOptions);
 let headers = httpC.session.k6params.headers;
 headers["Content-Type"] = "application/json";
-httpC.session.put(`/api/test/user/${caseId}`, JSON.stringify({ id: caseId}), { headers: headers });
+httpC.session.put(`/api/test/user_profile/${caseId}`, JSON.stringify({ id: caseId}), { headers: headers });
 ```
 <a name="new_module_http-client..HttpClient_new"></a>
 
@@ -788,6 +829,18 @@ Create a new HttpClient instance.
 | Param | Type | Description |
 | --- | --- | --- |
 | options | <code>object</code> | The options to configure the client. |
+
+<a name="module_http-client..HttpClient+registerSegmentFormat"></a>
+
+#### httpClient.registerSegmentFormat(segment, formatFunction)
+Register a custom format for a specific segment.
+
+**Kind**: instance method of [<code>HttpClient</code>](#module_http-client..HttpClient)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| segment | <code>string</code> | The segment to apply the custom format to. |
+| formatFunction | <code>function</code> | The formatting function to apply to the segment. |
 
 <a name="module_http-client..HttpClient+reset"></a>
 
@@ -1263,4 +1316,191 @@ Tear down the WebSocket event listeners.
 **Example**  
 ```javascript
 socket.tearDown();
+```
+<a name="PathFormatter"></a>
+
+## PathFormatter
+**Kind**: global class  
+
+* [PathFormatter](#PathFormatter)
+    * [new PathFormatter()](#new_PathFormatter_new)
+    * [.toSnakeCase(str)](#PathFormatter.toSnakeCase) ⇒ <code>string</code>
+    * [.toKebabCase(str)](#PathFormatter.toKebabCase) ⇒ <code>string</code>
+    * [.toCamelCase(str)](#PathFormatter.toCamelCase) ⇒ <code>string</code>
+    * [.toPascalCase(str)](#PathFormatter.toPascalCase) ⇒ <code>string</code>
+    * [.toDotNotation(str)](#PathFormatter.toDotNotation) ⇒ <code>string</code>
+    * [.toCapitalDotNotation(str)](#PathFormatter.toCapitalDotNotation) ⇒ <code>string</code>
+    * [.toConstantCase(str)](#PathFormatter.toConstantCase) ⇒ <code>string</code>
+    * [.toLowerCase(str)](#PathFormatter.toLowerCase) ⇒ <code>string</code>
+    * [.toUpperCase(str)](#PathFormatter.toUpperCase) ⇒ <code>string</code>
+
+<a name="new_PathFormatter_new"></a>
+
+### new PathFormatter()
+Class representing path formatting utilities.
+
+<a name="PathFormatter.toSnakeCase"></a>
+
+### PathFormatter.toSnakeCase(str) ⇒ <code>string</code>
+Convert a string with underscores to snake_case.
+
+**Kind**: static method of [<code>PathFormatter</code>](#PathFormatter)  
+**Returns**: <code>string</code> - The snake_case string.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| str | <code>string</code> | The string to convert. |
+
+**Example**  
+```js
+PathFormatter.toSnakeCase('foo_bar'); // returns 'foo_bar'
+PathFormatter.toSnakeCase('foo-bar'); // returns 'foo_bar'
+PathFormatter.toSnakeCase('FOO_BAR'); // returns 'foo_bar'
+```
+<a name="PathFormatter.toKebabCase"></a>
+
+### PathFormatter.toKebabCase(str) ⇒ <code>string</code>
+Convert a string with underscores separated words to kebab-case.
+
+**Kind**: static method of [<code>PathFormatter</code>](#PathFormatter)  
+**Returns**: <code>string</code> - The kebab-case string.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| str | <code>string</code> | The string to convert. |
+
+**Example**  
+```js
+PathFormatter.toKebabCase('foo_bar'); // returns 'foo-bar'
+```
+<a name="PathFormatter.toCamelCase"></a>
+
+### PathFormatter.toCamelCase(str) ⇒ <code>string</code>
+Convert a string with underscores separated words to camelCase.
+
+**Kind**: static method of [<code>PathFormatter</code>](#PathFormatter)  
+**Returns**: <code>string</code> - The camelCase string.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| str | <code>string</code> | The string to convert. |
+
+**Example**  
+```js
+PathFormatter.toCamelCase('foo_bar'); // returns 'fooBar'
+```
+<a name="PathFormatter.toPascalCase"></a>
+
+### PathFormatter.toPascalCase(str) ⇒ <code>string</code>
+Convert a string with underscores separated words to PascalCase.
+
+**Kind**: static method of [<code>PathFormatter</code>](#PathFormatter)  
+**Returns**: <code>string</code> - The PascalCase string.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| str | <code>string</code> | The string to convert. |
+
+**Example**  
+```js
+PathFormatter.toPascalCase('foo_bar'); // returns 'FooBar'
+```
+<a name="PathFormatter.toDotNotation"></a>
+
+### PathFormatter.toDotNotation(str) ⇒ <code>string</code>
+Convert a string with underscores separated words to dot.notation.
+
+**Kind**: static method of [<code>PathFormatter</code>](#PathFormatter)  
+**Returns**: <code>string</code> - The dot.notation string.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| str | <code>string</code> | The string to convert. |
+
+**Example**  
+```js
+PathFormatter.toDotNotation('foo_bar'); // returns 'foo.bar
+```
+<a name="PathFormatter.toCapitalDotNotation"></a>
+
+### PathFormatter.toCapitalDotNotation(str) ⇒ <code>string</code>
+Convert a string to Dot.Notation.In.Capital.
+
+**Kind**: static method of [<code>PathFormatter</code>](#PathFormatter)  
+**Returns**: <code>string</code> - The Dot.Notation.In.Capital string.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| str | <code>string</code> | The string to convert. |
+
+<a name="PathFormatter.toConstantCase"></a>
+
+### PathFormatter.toConstantCase(str) ⇒ <code>string</code>
+Convert a string to constant case (SCREAMING_SNAKE_CASE).
+
+**Kind**: static method of [<code>PathFormatter</code>](#PathFormatter)  
+**Returns**: <code>string</code> - The constant case string.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| str | <code>string</code> | The string to convert. |
+
+<a name="PathFormatter.toLowerCase"></a>
+
+### PathFormatter.toLowerCase(str) ⇒ <code>string</code>
+Convert a string with underscores separated words to non-separated words.
+
+**Kind**: static method of [<code>PathFormatter</code>](#PathFormatter)  
+**Returns**: <code>string</code> - The lower case string.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| str | <code>string</code> | The string to convert. |
+
+**Example**  
+```js
+PathFormatter.toNonSeparated('foo_bar'); // returns 'foobar'
+```
+<a name="PathFormatter.toUpperCase"></a>
+
+### PathFormatter.toUpperCase(str) ⇒ <code>string</code>
+Convert a string with underscores separated words to non-separated words.
+
+**Kind**: static method of [<code>PathFormatter</code>](#PathFormatter)  
+**Returns**: <code>string</code> - The upper case string.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| str | <code>string</code> | The string to convert. |
+
+**Example**  
+```js
+PathFormatter.toNonSeparated('foo_bar'); // returns 'FOOBAR'
+```
+<a name="Formatter"></a>
+
+## Formatter
+**Kind**: global class  
+
+* [Formatter](#Formatter)
+    * [new Formatter()](#new_Formatter_new)
+    * [.Type](#Formatter.Type) ⇒ <code>object</code>
+
+<a name="new_Formatter_new"></a>
+
+### new Formatter()
+Class Formatter as defining enums for different types of formatters.
+
+<a name="Formatter.Type"></a>
+
+### Formatter.Type ⇒ <code>object</code>
+Enum for different types of formatters.
+
+**Kind**: static enum of [<code>Formatter</code>](#Formatter)  
+**Returns**: <code>object</code> - The types of formatters.  
+**Read only**: true  
+**Example**  
+```js
+Formatter.Type.SNAKE_CASE; // returns 'snake_case'
+Formatter.Type.KEBAB_CASE; // returns 'kebab-case'
 ```

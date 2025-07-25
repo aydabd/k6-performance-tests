@@ -70,24 +70,35 @@ services:
       context: .
       dockerfile: simple-k6-test-template/Dockerfile
     image: simple-k6-test-template:latest
+    volumes:
+      - ./simple-k6-test-template/test-logs:/performance-k6/test-logs
     networks:
       - k6-webnet
-    environment:
-      - K6_LOG_OUTPUT=none
+
+  websocket-echo:
+    image: jmalloc/echo-server
+    ports:
+      - "9001:8080"
+    networks:
+      - k6-webnet
+    restart: unless-stopped
 
   simple-k6-websocket-test:
+    image: simple-k6-websocket-test:latest
+    build:
+      context: .
+      dockerfile: simple-k6-websocket-test/Dockerfile
     depends_on:
       - k6-template-influxdb-base
       - influxdb
       - nginx
-    build:
-      context: .
-      dockerfile: simple-k6-websocket-test/Dockerfile
-    image: simple-k6-websocket-test:latest
+      - websocket-echo
+    environment:
+      - API_SERVER=websocket-echo
+    volumes:
+      - ./simple-k6-websocket-test/test-logs:/performance-k6/test-logs
     networks:
       - k6-webnet
-    environment:
-      - K6_LOG_OUTPUT=none
 
 volumes:
   k6-influxdb-data: {}
