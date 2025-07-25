@@ -1,6 +1,5 @@
 import js from "@eslint/js";
 import jsdoc from "eslint-plugin-jsdoc";
-import airbnb from "eslint-config-airbnb-base";
 
 
 const config = [
@@ -15,7 +14,6 @@ const config = [
         },
         plugins: {
             jsdoc: jsdoc,
-            airbnb: airbnb,
         },
         rules: {
             "jsdoc/require-description": "warn",

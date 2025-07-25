@@ -260,7 +260,7 @@ class HttpClient {
      * request('get', { queryParams: { key1: 'value1' } });
      * ```
      */
-    request(method, url = "", body = null, params = {}) { // eslint-disable-line no-unused-vars
+    request(method, url = "", body = null, params = {}) {
         // Build the complete URL if url is not provided
         url = url || `${this.buildUrl()}`;
         if (body && typeof body === 'object') {
@@ -308,8 +308,10 @@ class HttpClient {
 
         let checkStatus = check(
             response,
-            { [`status: ${response.status}`]: (r) => r.status >= 200 && r.status < 300 } ||
-            { [`status: ${response.status}`]: (r) => r.status >= 400 && r.status < 600 }
+            {
+                'status is 2xx': (r) => r.status >= 200 && r.status < 300,
+                'status is 4xx/5xx': (r) => r.status >= 400 && r.status < 600
+            }
         );
         if (!checkStatus) {
             ErrorHandler.logError(!checkStatus, response);

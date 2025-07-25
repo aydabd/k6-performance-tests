@@ -5,7 +5,7 @@ These guidelines apply to the entire repository and should be followed by any au
 ## Linting and Docs
 
 - Install dependencies with `npm install`.
-- Install pre-commit wih `pip install pre-commit
+- Install pre-commit with `pip install pre-commit
 - Run `pre-commit run --all-files -c .githooks.d/.pre-commit-config.yaml
 
 ## Integration Tests
