@@ -6,8 +6,7 @@
  */
 
 import { WebSocket } from 'k6/experimental/websockets';
-import { setTimeout, clearTimeout } from 'k6/experimental/timers';
-import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
+import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.6.0/index.js';
 import { Authenticator } from './http-auth.js';
 import { BaseUrl } from './base-url.js';
 import { HttpHeaders } from './http-client.js';
@@ -42,7 +41,9 @@ class WSOptionsGenerator {
      * ```
      */
     constructor(options = {}) {
+        const debugOptions = { ...options };
         options.baseURL = new BaseUrl(options).baseURL;
+        console.log(`[WSOptionsGenerator] Full options:`, JSON.stringify(debugOptions)); // eslint-disable-line no-undef
         // Override the headers if not provided
         if (!options.headers) {
             options.authenticator = new Authenticator(options);
@@ -80,6 +81,8 @@ class WebSocketClient {
         this.params = this.wsOptions.params;
         this.options = this.wsOptions.options;
 
+        console.log(`[WebSocketClient] Connecting to URL: ${this.url}`); // eslint-disable-line no-undef
+        console.log(`[WebSocketClient] Params:`, JSON.stringify(this.params)); // eslint-disable-line no-undef
         this.socket = new WebSocket(this.url, this.params);
         this.tags = this.params.tags;
         this.headers = this.params.headers;
@@ -124,7 +127,9 @@ class WebSocketClient {
      * ```
      */
     send(message = {}) {
-        message = JSON.stringify(message);
+        if (typeof message === 'object') {
+            message = JSON.stringify(message);
+        }
         this.socket.send(message);
         console.log(`Sent message: ${message}`); // eslint-disable-line no-undef
     }
@@ -138,7 +143,7 @@ class WebSocketClient {
      */
     startTimeout() {
         console.log(`Starting timeout for ${this.timeoutDuration} ms`); // eslint-disable-line no-undef
-        this.timeoutId = setTimeout(() => {
+        this.timeoutId = setTimeout(() => { // eslint-disable-line no-undef
             console.log('Closing WebSocket connection due to timeout.'); // eslint-disable-line no-undef
             this.close(1006, 'Connection Timeout');
         }, this.timeoutDuration);
@@ -153,7 +158,7 @@ class WebSocketClient {
      */
     clTimeout() {
         if (this.timeoutId) {
-            clearTimeout(this.timeoutId);
+            clearTimeout(this.timeoutId); // eslint-disable-line no-undef
             this.timeoutId = null;
         }
     }

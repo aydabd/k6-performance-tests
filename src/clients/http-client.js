@@ -10,6 +10,7 @@ import { Httpx } from 'https://jslib.k6.io/httpx/0.1.0/index.js';
 import { URLSearchParams } from 'https://jslib.k6.io/url/1.0.0/index.js';
 import { ErrorHandler } from './http-error-handler.js'
 import { Authenticator } from './http-auth.js';
+import { PathFormatter, Formatter } from './path-formatter.js';
 import  { BaseUrl } from './base-url.js';
 
 
@@ -162,9 +163,16 @@ class HttpOptionsGenerator {
  * @class HttpClient
  * @example
  * ```javascript
- * const client = new HttpClient({ host: 'api.example.com', port: 443, protocol: 'https' });
+ * const client = new HttpClient(
+ *   {
+ *     host: 'api.example.com',
+ *     port: 443,
+ *     protocol: 'https'
+ *     formatter: PathFormatter.toKebabCase
+ *   }
+ * );
  * client.request('get', { queryParams: { key1: 'value1' } });
- * client.createProxy().api.v2.users(1).get();
+ * client.createProxy().api.v2.users_profile(1).get();
  * ```
  * @example
  * Use the HttpClient to send a request to the API.
@@ -173,7 +181,7 @@ class HttpOptionsGenerator {
  * const httpC = new HttpClient(genOptions);
  * let headers = httpC.session.k6params.headers;
  * headers["Content-Type"] = "application/json";
- * httpC.session.put(`/api/test/user/${caseId}`, JSON.stringify({ id: caseId}), { headers: headers });
+ * httpC.session.put(`/api/test/user_profile/${caseId}`, JSON.stringify({ id: caseId}), { headers: headers });
  * ```
  */
 class HttpClient {
@@ -187,7 +195,18 @@ class HttpClient {
         this.httpOptions = new HttpOptionsGenerator(options);
         this.session.setBaseUrl(this.httpOptions.baseURL);
         this.session.addHeaders(this.httpOptions.headers);
+        this.formatter = options.Formatter || Formatter.Type.KEBAB_CASE;
+        this.segmentFormat = {};
         this.reset();
+    }
+
+    /**
+     * Register a custom format for a specific segment.
+     * @param {string} segment - The segment to apply the custom format to.
+     * @param {Function} formatFunction - The formatting function to apply to the segment.
+     */
+    registerSegmentFormat(segment, formatFunction) {
+        this.segmentFormat[segment] = formatFunction;
     }
 
     /**
@@ -223,13 +242,35 @@ class HttpClient {
             return '';
         }
 
-        // Change underscores to hyphens in the path segments and remove empty segments
-        this.pathSegments = this.pathSegments.map(segment =>
-            segment ? (isNaN(segment) ? segment.replace(/_/g, '-') : segment) : ''
-        );
-
-        // Join the path segments and return the complete URL
-        let path = this.pathSegments.join('/');
+        // Format each segment using either a custom function or the default formatter
+        const formattedSegments = this.pathSegments.map(segment => {
+            if (this.segmentFormat[segment]) {
+                return this.segmentFormat[segment](segment);
+            }
+            switch (this.formatter) {
+                case Formatter.Type.KEBAB_CASE:
+                    return PathFormatter.toKebabCase(segment);
+                case Formatter.Type.SNAKE_CASE:
+                    return PathFormatter.toSnakeCase(segment);
+                case Formatter.Type.CAMEL_CASE:
+                    return PathFormatter.toCamelCase(segment);
+                case Formatter.Type.PASCAL_CASE:
+                    return PathFormatter.toPascalCase(segment);
+                case Formatter.Type.DOT_NOTATION:
+                    return PathFormatter.toDotNotation(segment);
+                case Formatter.Type.CAPITAL_DOT_NOTATION:
+                    return PathFormatter.toCapitalDotNotation(segment);
+                case Formatter.Type.SCREAMING_SNAKE_CASE:
+                    return PathFormatter.toScreamingSnakeCase(segment);
+                case Formatter.Type.LOWER_CASE:
+                    return PathFormatter.toLowerCase(segment);
+                case Formatter.Type.UPPER_CASE:
+                    return PathFormatter.toUpperCase(segment);
+                default:
+                    return PathFormatter.toKebabCase(segment);
+            }
+        });
+        let path = formattedSegments.join('/');
         return `${this.session.baseURL}/${path}`;
     }
 
@@ -269,6 +310,7 @@ class HttpClient {
                 this.httpOptions.headers["Content-Type"] = "application/soap+xml";
                 body = body.queryParams.soapBody;
             } else {
+                // If body.extraBody is set, then it is a nested body object and body should be extended with it
                 let queryParams = this.buildQueryParams(body.queryParams);
                 url += queryParams;
                 delete body.queryParams;
