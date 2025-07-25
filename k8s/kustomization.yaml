@@ -1,0 +1,7 @@
+resources:
+  - namespace.yaml
+  - influxdb-deployment.yaml
+  - grafana-deployment.yaml
+  - k6-job.yaml
+  - influxdb-service.yaml
+  - grafana-service.yaml
