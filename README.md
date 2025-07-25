@@ -1,5 +1,9 @@
 # Performance Tests via K6
 
+![Release](https://img.shields.io/github/v/release/aydabd/k6-performance-tests)
+![Build Status](https://github.com/aydabd/k6-performance-tests/actions/workflows/ci.yml/badge.svg)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+
 This project contains k6 tests for non-functional testing (load testing, stress testing, spike, etc.), packaged and ready to run with Docker. By using Docker, you can easily run your tests without having to install k6 or any other dependencies directly on your machine, apart from Docker itself.
 
 ## Installation Requirements
