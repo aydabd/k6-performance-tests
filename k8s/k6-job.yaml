@@ -1,15 +1,16 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: simple-k6-test
-  namespace: k6-tests
+  name: ${JOB_NAME}
 spec:
+  backoffLimit: 0
   template:
     spec:
       restartPolicy: Never
       containers:
         - name: k6
           image: ${TEST_IMAGE}
+          imagePullPolicy: IfNotPresent
           env:
             - name: K6_INFLUXDB_ADDR
               value: "http://influxdb:8086"
@@ -19,4 +20,3 @@ spec:
       volumes:
         - name: logs
           emptyDir: {}
-  backoffLimit: 0

@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-# Simple script to run k6 tests in a local Kubernetes cluster.
+set -euo pipefail
+set +x
+# Simple script to run k6 tests in a local Kubernetes cluster (Rancher Desktop compatible).
 
+# Use Rancher Desktop's kubeconfig and context by default
+KUBECONFIG_LOCAL=${KUBECONFIG_LOCAL:-$HOME/.kube/config}
+KUBECTL_CONTEXT=${KUBECTL_CONTEXT:-rancher-desktop}
 NAMESPACE="k6-tests"
 K8S_DIR="k8s"
 TEST_IMAGE=""
@@ -18,41 +23,116 @@ Options:
 USAGE
 }
 
+
+# Build images in dependency order: base first, then dependents
 build_images() {
-    docker compose build --parallel
+    echo "[INFO] Building k6-template-influxdb-base image..."
+    docker build -t k6-template-influxdb-base:latest -f Dockerfile .
+
+    echo "[INFO] Building simple-k6-test-template image..."
+    docker build -t simple-k6-test-template:latest -f simple-k6-test-template/Dockerfile .
+
+    echo "[INFO] Building simple-k6-websocket-test image..."
+    docker build -t simple-k6-websocket-test:latest -f simple-k6-websocket-test/Dockerfile .
+
     import_images
 }
+
 
 import_images() {
     if command -v k3d >/dev/null 2>&1; then
         for image in "${IMAGES[@]}"; do
             k3d image import "${image}:latest" -c "$K3D_CLUSTER_NAME" || true
         done
+    elif command -v nerdctl >/dev/null 2>&1; then
+        # Try common Rancher Desktop containerd socket paths
+        NERDCTL_SOCKET=""
+        for sock in /run/k3s/containerd/containerd.sock /run/containerd/containerd.sock /var/run/docker/containerd/containerd.sock; do
+            if [ -S "$sock" ]; then
+                NERDCTL_SOCKET="$sock"
+                break
+            fi
+        done
+        if [ -z "$NERDCTL_SOCKET" ]; then
+            echo "[ERROR] Could not find a valid containerd socket for nerdctl."
+        else
+            for image in "${IMAGES[@]}"; do
+                echo "[INFO] Importing $image:latest into Rancher Desktop containerd using $NERDCTL_SOCKET..."
+                docker save "${image}:latest" | nerdctl --namespace k8s.io --address "$NERDCTL_SOCKET" load || true
+            done
+        fi
+    elif docker info 2>&1 | grep -q 'Rancher Desktop'; then
+        # Rancher Desktop with dockerd (moby) shares images with the cluster, so nothing to do
+        echo "[INFO] Rancher Desktop with dockerd detected. Images are already available to the cluster."
+    else
+        echo "[WARN] No supported image import method found (k3d, nerdctl, or dockerd-moby). Images may not be available to your cluster."
     fi
 }
 
+
+
 apply_manifests() {
-    kubectl apply -k "$K8S_DIR"
+    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -k "$K8S_DIR"
 }
-run_job() {
-    kubectl delete job simple-k6-test -n "$NAMESPACE" --ignore-not-found
+
+
+# Run both simple-k6-test and simple-k6-websocket-test jobs in parallel
+run_jobs_parallel() {
+    # Clean up any previous jobs/pods
+    for job in simple-k6-test simple-k6-websocket-test; do
+        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" delete job "$job" -n "$NAMESPACE" --ignore-not-found --grace-period=0 --force || true
+        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" wait --for=delete job/"$job" -n "$NAMESPACE" --timeout=60s || true
+        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" delete pod -l job-name="$job" -n "$NAMESPACE" --ignore-not-found --grace-period=0 --force || true
+    done
+
+    # Launch both jobs in parallel
     TEST_IMAGE_FULL="${TEST_IMAGE}:latest"
-    env TEST_IMAGE="$TEST_IMAGE_FULL" envsubst < "$K8S_DIR/k6-job.yaml" | kubectl apply -f -
-    if kubectl wait --for=condition=complete job/simple-k6-test -n "$NAMESPACE" --timeout=600s; then
-        kubectl logs job/simple-k6-test -n "$NAMESPACE"
-    else
-        kubectl logs job/simple-k6-test -n "$NAMESPACE" || true
-        return 1
-    fi
+    JOB_NAME="simple-k6-test" TEST_IMAGE="$TEST_IMAGE_FULL" envsubst < "$K8S_DIR/k6-job.yaml" | kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -f -
+    JOB_NAME="simple-k6-websocket-test" TEST_IMAGE="simple-k6-websocket-test:latest" envsubst < "$K8S_DIR/k6-job.yaml" | kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -f -
+
+    # Wait for jobs to exist before proceeding
+    for job in simple-k6-test simple-k6-websocket-test; do
+        for i in {1..10}; do
+            if kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" get job "$job" -n "$NAMESPACE" >/dev/null 2>&1; then
+                break
+            fi
+            echo "[INFO] Waiting for job $job to be created... ($i/10)"; sleep 1
+        done
+    done
+
+    # Wait for both jobs to complete in parallel
+    (
+        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" wait --for=condition=complete job/simple-k6-test -n "$NAMESPACE" --timeout=600s && \
+        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" logs job/simple-k6-test -n "$NAMESPACE"
+    ) &
+    PID1=$!
+    (
+        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" wait --for=condition=complete job/simple-k6-websocket-test -n "$NAMESPACE" --timeout=600s && \
+        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" logs job/simple-k6-websocket-test -n "$NAMESPACE"
+    ) &
+    PID2=$!
+
+    wait $PID1 || kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" logs job/simple-k6-test -n "$NAMESPACE" || true
+    wait $PID2 || kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" logs job/simple-k6-websocket-test -n "$NAMESPACE" || true
 }
+
+
 
 
 
 cleanup() {
-    kubectl delete -k "$K8S_DIR" --ignore-not-found
+    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" delete -k "$K8S_DIR" --ignore-not-found
 }
 
+cleanup_and_exit() {
+    echo "[INFO] Cleaning up test resources..."
+    cleanup
+    exit 1
+}
+
+
 main() {
+    trap cleanup_and_exit SIGINT SIGTERM EXIT
     local cleanup_flag=false
     while getopts "hd:c" opt; do
         case $opt in
@@ -62,6 +142,14 @@ main() {
             *) usage; exit 1 ;;
         esac
     done
+
+    echo "[DEBUG] Using kubeconfig: $KUBECONFIG_LOCAL"
+    echo "[DEBUG] Using context: $KUBECTL_CONTEXT"
+    echo "[DEBUG] Running: kubectl --kubeconfig=\"$KUBECONFIG_LOCAL\" --context=\"$KUBECTL_CONTEXT\" version"
+    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" version || {
+        echo "[ERROR] Kubernetes cluster is not reachable. Please ensure your Rancher Desktop cluster is running and kubeconfig/context are correct." >&2
+        exit 1
+    }
 
     if [ "$cleanup_flag" = true ]; then
         cleanup
@@ -76,7 +164,8 @@ main() {
 
     build_images
     apply_manifests
-    run_job
+    run_jobs_parallel
+    trap - SIGINT SIGTERM EXIT
 }
 
 main "$@"
