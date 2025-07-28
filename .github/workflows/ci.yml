@@ -33,3 +33,15 @@ jobs:
         run: ./ci-deployment -d simple-k6-test-template
       - name: Run integration tests for ws client
         run: ./ci-deployment -d simple-k6-websocket-test -s websocket-echo
+
+  integration-tests-k8s:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: AbsaOSS/k3d-action@v2
+        with:
+          cluster-name: k6
+      - name: Run integration tests on Kubernetes
+        env:
+          KUBECTL_CONTEXT: k3d-k6
+        run: ./k8s-deployment -a

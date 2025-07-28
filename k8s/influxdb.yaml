@@ -1,0 +1,52 @@
+# Combines deployment and service for influxdb
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: influxdb
+  namespace: k6-tests
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: influxdb
+  template:
+    metadata:
+      labels:
+        app: influxdb
+    spec:
+      containers:
+        - name: influxdb
+          image: influxdb:latest
+          env:
+            - name: DOCKER_INFLUXDB_INIT_MODE
+              value: "setup"
+            - name: DOCKER_INFLUXDB_INIT_USERNAME
+              value: "k6test"
+            - name: DOCKER_INFLUXDB_INIT_PASSWORD
+              value: "k6testme"
+            - name: DOCKER_INFLUXDB_INIT_ORG
+              value: "k6testorg"
+            - name: DOCKER_INFLUXDB_INIT_BUCKET
+              value: "simple-k6-tests"
+            - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+              value: "y3zTEWhDLPfa05-op-gKftVHhbEkmNL98uijqokTMr_JHdlK59PpitKl6QdXNF3YQVrLXdtTdjISNSqWtFwbFw=="
+          ports:
+            - containerPort: 8086
+          volumeMounts:
+            - name: influxdb-data
+              mountPath: /var/lib/influxdb2
+      volumes:
+        - name: influxdb-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: influxdb
+  namespace: k6-tests
+spec:
+  selector:
+    app: influxdb
+  ports:
+    - port: 8086
+      targetPort: 8086

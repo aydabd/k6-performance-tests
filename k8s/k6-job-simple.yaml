@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${JOB_NAME}
+  namespace: k6-tests
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: ${TEST_IMAGE}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: K6_INFLUXDB_ADDR
+              value: "http://influxdb:8086"
+          volumeMounts:
+            - name: logs
+              mountPath: /performance-k6/test-logs
+      volumes:
+        - name: logs
+          emptyDir: {}
