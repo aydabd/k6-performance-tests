@@ -6,18 +6,19 @@
 
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.6.0
+  rev: v5.0.0
   hooks:
   - id: trailing-whitespace
     exclude: ^docs/
   - id: end-of-file-fixer
     exclude: ^docs/
   - id: check-yaml
+    exclude: ^k8s/
   - id: check-toml
   - id: check-json
   - id: check-merge-conflict
 - repo: https://github.com/codespell-project/codespell
-  rev: v2.3.0
+  rev: v2.4.1
   hooks:
   - id: codespell
 - repo: local
