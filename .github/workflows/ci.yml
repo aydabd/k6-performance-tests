@@ -42,4 +42,6 @@ jobs:
         with:
           cluster-name: k6
       - name: Run integration tests on Kubernetes
-        run: ./k8s-deployment -d simple-k6-test-template
+        env:
+          KUBECTL_CONTEXT: k3d-k6
+        run: ./k8s-deployment -a

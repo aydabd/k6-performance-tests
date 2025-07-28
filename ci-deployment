@@ -8,12 +8,6 @@
 # ./ci-deployment -h
 #############################################################################################
 
-# ASCI colors for the output messages
-RED='\033[0;31m'
-ORANGE='\033[0;33m'
-GREEN='\033[0;32m'
-NC='\033[0m'
-
 EXTERNAL_SERVICES="grafana influxdb nginx"
 DEFAULT_API_SERVER="dogapi.dog"
 DEFAULT_K6_CONFIG_FILE="./k6-config-options/default-test-config.json"
@@ -66,6 +60,64 @@ Example:
 EOF
 }
 
+# Logging & Color
+BLUE_COLOR="\033[0;34m"
+RED_COLOR="\033[0;31m"
+GREEN_COLOR="\033[0;32m"
+YELLOW_COLOR="\033[0;33m"
+RESET_COLOR="\033[0m"
+
+get_timestamp() {
+    date -u '+%Y-%m-%dT%H:%M:%SZ'
+}
+
+_log() {
+    local level="$1"; shift
+    local message="$1"; shift
+    local color=""; local reset="\033[0m"
+    case "$level" in
+        "INFO")     color="$BLUE_COLOR" ;;
+        "ERROR")    color="$RED_COLOR" ;;
+        "SUCCESS")  color="$GREEN_COLOR" ;;
+        "WARNING")  color="$YELLOW_COLOR" ;;
+        *)           color="$RESET_COLOR" ;;
+    esac
+    local line_number="${BASH_LINENO[0]}"
+    local calling_function="${FUNCNAME[1]}"
+    if [ "$level" = "ERROR" ] || [ "$level" = "WARNING" ]; then
+        printf "${color}[%s]${reset}-[%s]-[%s:%s]: %s %s\\n" \
+            "$level" "$(get_timestamp)" "$calling_function" "$line_number" "$message" "$*" >&2
+    else
+        printf "${color}[%s]${reset}-[%s]-[%s:%s]: %s %s\\n" \
+            "$level" "$(get_timestamp)" "$calling_function" "$line_number" "$message" "$*"
+    fi
+}
+
+log_info()    { _log "INFO"    "$@"; }
+log_error()   { _log "ERROR"   "$@"; }
+log_success() { _log "SUCCESS" "$@"; }
+log_warning() { _log "WARNING" "$@"; }
+
+handle_error() {
+    local error_message="$1"
+    local exit_code="${2:-1}"
+    local should_exit="${3:-true}"
+    log_error "$error_message"
+    if [ -n "${DEBUG:-}" ]; then
+        echo "Stack trace:" >&2
+        local frame=0
+        while caller $frame; do ((frame++)); done | sed 's/^/    /' >&2
+    fi
+    if $should_exit; then
+        exit "$exit_code"
+    fi
+}
+
+# Trap errors and call handle_error function
+# This will catch any command that returns a non-zero exit code
+trap 'handle_error "An unexpected error occurred" 1' ERR
+
+
 # Build the docker images using the docker compose
 __ci_deployment_compose_build_images() {
     docker compose build --parallel
@@ -73,15 +125,15 @@ __ci_deployment_compose_build_images() {
 
 # Run the external services using the docker compose before running the tests
 __ci_deployment_run_external_services() {
+    log_info "Starting external services: $EXTERNAL_SERVICES"
     docker compose up -d --wait $EXTERNAL_SERVICES
 }
 
 # Tear down the external services using the docker compose after running the tests
 __ci_deployment_tear_down_external_services() {
-    printf "Tearing down services: ${EXTERNAL_SERVICES}\n"
+    log_info "Tearing down services: ${EXTERNAL_SERVICES}"
     docker compose down
-
-    printf "Persistent data from the services: ${EXTERNAL_SERVICES} not removed\n"
+    log_info "Persistent data from the services: ${EXTERNAL_SERVICES} not removed"
 }
 
 
@@ -96,12 +148,12 @@ __ci_deployment_tear_down_external_services() {
 __ci_deployment_hwclock_sync() {
     # Skip syncing the hardware clock when running in CI environments
     if [ -n "$CI" ]; then
-        printf "Skipping hardware clock sync in CI\n"
+        log_info "Skipping hardware clock sync in CI"
         return
     fi
 
-    printf "Checking the date and time\n"
-    printf "${ORANGE}The date and time: %s${NC}\n" "$(date)"
+    log_info "Checking the date and time"
+    log_info "The date and time: $(date)"
 
     read -p "Is the date correct? [y/n](default: y): " resp
     case $resp in
@@ -109,12 +161,11 @@ __ci_deployment_hwclock_sync() {
         *) return ;;
     esac
 
-    printf "Syncing the hardware clock with the system clock\n"
-    printf "${ORANGE}[WARNING] This is a temporary fix for the time drift issue for WSL2 windows${NC}\n"
-    printf "${ORANGE}[WARNING] It needs root permission to sync the hardware clock with the system clock${NC}\n"
+    log_warning "[WARNING] This is a temporary fix for the time drift issue for WSL2 windows"
+    log_warning "[WARNING] It needs root permission to sync the hardware clock with the system clock"
     sudo hwclock -s || true
-    printf "Hardware clock has been synced with the system clock\n"
-    printf "${GREEN}We are safe now, no more root permission required${NC}\n"
+    log_info "Hardware clock has been synced with the system clock"
+    log_success "We are safe now, no more root permission required"
 }
 
 ################################################################################
@@ -158,14 +209,15 @@ __ci_deployment_run_test() {
     server_address_args="-e API_SERVER=$server_address"
     k6_config_file_args="-e PERFORMANCE_K6_OPTION_CONFIG_PATH=$k6_config_file"
 
+
     if [ -z "$test_script_dir" ]; then
-        printf "The test script directory is required to run the tests\n"
-        printf "Please provide the test script directory using the -d flag\n"
+        log_error "The test script directory is required to run the tests"
+        log_error "Please provide the test script directory using the -d flag"
         exit 1
     fi
 
     if [ ! -d "$test_script_dir" ]; then
-        printf "The test script directory: ${test_script_dir} does not exist\n"
+        log_error "The test script directory: ${test_script_dir} does not exist"
         exit 1
     fi
 
@@ -188,14 +240,14 @@ __ci_deployment_run_test() {
 # Caution: This will clean up all the docker containers, volumes, networks and images
 #####################################################################################
 __ci_deployment_cleanup() {
-    read -p "${ORANGE}CAUTION: are you sure you want to clean up all the docker containers, volumes, networks and images? [yes/no]:${NC} " resp
+    read -p "CAUTION: are you sure you want to clean up all the docker containers, volumes, networks and images? [yes/no]: " resp
     if [ "$resp" = "yes" ]; then
         docker compose down --volumes
         docker system prune --force
         docker volume prune --force
         docker network prune --force
         docker image prune --force
-        printf "All the docker containers, volumes, networks and images have been cleaned up\n"
+        log_success "All the docker containers, volumes, networks and images have been cleaned up"
     fi
 }
 
@@ -212,10 +264,10 @@ __ci_deployment_cleanup() {
 __ci_deployment_remove_all_images() {
     case $1 in
         -y | --yes) docker rmi $(docker images -q) -f 2>/dev/null || true ;;
-        *) printf "${ORANGE}CAUTION: Are you sure you want to remove all the images from the local machine? [y/n]:${NC} " && read resp
+        *) log_warning "CAUTION: Are you sure you want to remove all the images from the local machine? [y/n]:" && read resp
             if [ "$resp" = "y" ]; then
                 docker rmi $(docker images -q) -f 2>/dev/null || true
-                printf "All the images have been removed from the local machine\n"
+                log_success "All the images have been removed from the local machine"
             fi
             ;;
     esac
@@ -236,7 +288,7 @@ __ci_deployment_compose_ngnix_reload() {
 # Check if the docker is installed and is the correct version 25 or higher
 __ci_deployment_is_docker_installed_and_is_correct_version() {
     if ! command -v docker >/dev/null 2>&1; then
-        printf "${RED}Docker is not installed${NC}\n"
+        log_error "Docker is not installed"
         exit 1
     fi
 
@@ -246,12 +298,12 @@ __ci_deployment_is_docker_installed_and_is_correct_version() {
     major_version=${docker_version%%.*}
 
     if [ "$major_version" -lt 25 ]; then
-        printf "${RED}The docker version is lower than 25${NC}\n"
-        printf "${RED}Install the latest docker version.${NC}\n"
+        log_error "The docker version is lower than 25"
+        log_error "Install the latest docker version."
         exit 1
     fi
 
-    printf "${GREEN}Docker is installed and the version is correct: %s${NC}\n" "$docker_version"
+    log_success "Docker is installed and the version is correct: $docker_version"
 }
 
 
@@ -293,12 +345,13 @@ main() {
     k6_config_file="${k6_config_file:-$DEFAULT_K6_CONFIG_FILE}"
     version="${version:-$VERSION}"
 
-    printf "Running the tests for the test script image: $test_script_image\n"
+
+    log_info "Running the tests for the test script image: $test_script_image"
 
     if [ -z "$test_script_image" ]; then
-        printf "${RED}The test scripts image is required to run the tests${NC}\n"
-        printf "Please provide the test scripts image using the -d flag\n"
-        printf "Example: %s -d test-scripts-dir\n" "$(basename $0)"
+        log_error "The test scripts image is required to run the tests"
+        log_error "Please provide the test scripts image using the -d flag"
+        log_info "Example: %s -d test-scripts-dir" "$(basename $0)"
         exit 1
     fi
 

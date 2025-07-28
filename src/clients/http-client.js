@@ -348,15 +348,19 @@ class HttpClient {
             return {};
         }
 
-        let checkStatus = check(
-            response,
-            {
-                'status is 2xx': (r) => r.status >= 200 && r.status < 300,
-                'status is 4xx/5xx': (r) => r.status >= 400 && r.status < 600
+        // Only check for 2xx as success
+        let is2xx = check(response, {
+            'status is 2xx': (r) => r.status >= 200 && r.status < 300
+        });
+
+        if (!is2xx) {
+            // Optionally, log 4xx/5xx as error
+            if (response.status >= 400 && response.status < 600) {
+                check(response, {
+                    'status is 4xx/5xx': (r) => r.status >= 400 && r.status < 600
+                });
             }
-        );
-        if (!checkStatus) {
-            ErrorHandler.logError(!checkStatus, response);
+            ErrorHandler.logError(true, response);
             return ErrorHandler.errorResponse;
         }
 

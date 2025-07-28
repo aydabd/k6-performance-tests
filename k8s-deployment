@@ -1,44 +1,169 @@
 #!/usr/bin/env bash
-set -euo pipefail
+################################################################################
+# Title: k8s-deployment
+# Description: Automates build, import, deployment, and cleanup of k6 test jobs
+#              in a local Kubernetes cluster (Rancher Desktop compatible).
+# Author: Aydin Abdi
+#
+# Usage:
+#   ./k8s-deployment -d <test-dir>      # Run a specific test
+#   ./k8s-deployment -a|--all           # Run all tests in parallel
+#   ./k8s-deployment -c                 # Clean up Kubernetes resources
+#   ./k8s-deployment -h                 # Show help
+#
+# See the usage function in this script for more details.
+################################################################################
+set -uo pipefail
 set +x
 # Simple script to run k6 tests in a local Kubernetes cluster (Rancher Desktop compatible).
+
+#####################
+# Logging & Color   #
+#####################
+BLUE_COLOR="\033[0;34m"
+RED_COLOR="\033[0;31m"
+GREEN_COLOR="\033[0;32m"
+YELLOW_COLOR="\033[0;33m"
+RESET_COLOR="\033[0m"
+
+################################################################################
+# get_timestamp
+#   Returns the current UTC timestamp in ISO 8601 format.
+################################################################################
+get_timestamp() {
+    date -u '+%Y-%m-%dT%H:%M:%SZ'
+}
+
+################################################################################
+# _log
+#   Internal logging function for colorized, timestamped output.
+#   Args:
+#     $1: Log level (INFO, ERROR, SUCCESS, WARNING)
+#     $2: Message
+#     $@: Additional message parts
+################################################################################
+_log() {
+    local level="$1"; shift
+    local message="$1"; shift
+    local color=""; local reset="\033[0m"
+    case "$level" in
+        "INFO")     color="$BLUE_COLOR" ;;
+        "ERROR")    color="$RED_COLOR" ;;
+        "SUCCESS")  color="$GREEN_COLOR" ;;
+        "WARNING")  color="$YELLOW_COLOR" ;;
+        *)           color="$RESET_COLOR" ;;
+    esac
+    local line_number="${BASH_LINENO[0]}"
+    local calling_function="${FUNCNAME[1]}"
+    if [ "$level" = "ERROR" ] || [ "$level" = "WARNING" ]; then
+        printf "${color}[%s]${reset}-[%s]-[%s:%s]: %s %s\\n" \
+            "$level" "$(get_timestamp)" "$calling_function" "$line_number" "$message" "$*" >&2
+    else
+        printf "${color}[%s]${reset}-[%s]-[%s:%s]: %s %s\\n" \
+            "$level" "$(get_timestamp)" "$calling_function" "$line_number" "$message" "$*"
+    fi
+}
+
+
+################################################################################
+# log_info, log_error, log_success, log_warning
+#   User-facing logging wrappers for _log.
+################################################################################
+log_info()    { _log "INFO"    "$@"; }
+log_error()   { _log "ERROR"   "$@"; }
+log_success() { _log "SUCCESS" "$@"; }
+log_warning() { _log "WARNING" "$@"; }
+
+################################################################################
+# handle_error
+#   Generic error handler for trapping errors.
+#   Args:
+#     $1: Error message
+#     $2: Exit code (default: 1)
+#     $3: Should exit (default: true)
+################################################################################
+handle_error() {
+    local error_message="$1"
+    local exit_code="${2:-1}"
+    local should_exit="${3:-true}"
+    log_error "$error_message"
+    if [ -n "${DEBUG:-}" ]; then
+        echo "Stack trace:" >&2
+        local frame=0
+        while caller $frame; do ((frame++)); done | sed 's/^/    /' >&2
+    fi
+    if $should_exit; then
+        exit "$exit_code"
+    fi
+}
+
+trap 'handle_error "An unexpected error occurred" 1' ERR
 
 # Use Rancher Desktop's kubeconfig and context by default
 KUBECONFIG_LOCAL=${KUBECONFIG_LOCAL:-$HOME/.kube/config}
 KUBECTL_CONTEXT=${KUBECTL_CONTEXT:-rancher-desktop}
 NAMESPACE="k6-tests"
 K8S_DIR="k8s"
-TEST_IMAGE=""
+TEST_DIR=""
 IMAGES=(k6-template-influxdb-base simple-k6-test-template simple-k6-websocket-test)
 K3D_CLUSTER_NAME=${K3D_CLUSTER_NAME:-k6}
 
 usage() {
     cat <<USAGE
-Usage: $(basename "$0") -d <test-image>
+Usage: $(basename "$0") -d <test-image> [-t <test-type>]
 
 Options:
   -h            Show this help message
-  -d <image>    Name of the test image to run (required)
+  -d <dir>      Directory of the test to run (builds and runs only that test)
+  -a, --all     Build and run all test jobs in parallel
   -c            Clean up Kubernetes resources
 USAGE
 }
 
 
+
 # Build images in dependency order: base first, then dependents
+################################################################################
+# build_images
+#   Builds Docker images in dependency order and imports them into the cluster.
+#   Sets the IMAGES array for later use.
+################################################################################
 build_images() {
-    echo "[INFO] Building k6-template-influxdb-base image..."
+    log_info "Building k6-template-influxdb-base image..."
     docker build -t k6-template-influxdb-base:latest -f Dockerfile .
 
-    echo "[INFO] Building simple-k6-test-template image..."
-    docker build -t simple-k6-test-template:latest -f simple-k6-test-template/Dockerfile .
-
-    echo "[INFO] Building simple-k6-websocket-test image..."
-    docker build -t simple-k6-websocket-test:latest -f simple-k6-websocket-test/Dockerfile .
+    if [ "$RUN_ALL" = true ]; then
+        build_test_image "simple-k6-test-template"
+        build_test_image "simple-k6-websocket-test"
+        IMAGES=(k6-template-influxdb-base simple-k6-test-template simple-k6-websocket-test)
+    elif [ "$TEST_DIR" = "simple-k6-test-template" ]; then
+        build_test_image "simple-k6-test-template"
+        IMAGES=(k6-template-influxdb-base simple-k6-test-template)
+    elif [ "$TEST_DIR" = "simple-k6-websocket-test" ]; then
+        build_test_image "simple-k6-websocket-test"
+        IMAGES=(k6-template-influxdb-base simple-k6-websocket-test)
+    fi
 
     import_images
 }
 
+################################################################################
+# build_test_image
+#   Builds a specific test image.
+#   Args:
+#     $1: Test name (directory)
+################################################################################
+build_test_image() {
+    local test_name="$1"
+    log_info "Building $test_name image..."
+    docker build -t "$test_name:latest" -f "$test_name/Dockerfile" .
+}
 
+
+################################################################################
+# import_images
+#   Imports built images into the local Kubernetes cluster using k3d, nerdctl, or dockerd.
+################################################################################
 import_images() {
     if command -v k3d >/dev/null 2>&1; then
         for image in "${IMAGES[@]}"; do
@@ -54,118 +179,340 @@ import_images() {
             fi
         done
         if [ -z "$NERDCTL_SOCKET" ]; then
-            echo "[ERROR] Could not find a valid containerd socket for nerdctl."
+            log_error "Could not find a valid containerd socket for nerdctl."
         else
             for image in "${IMAGES[@]}"; do
-                echo "[INFO] Importing $image:latest into Rancher Desktop containerd using $NERDCTL_SOCKET..."
+                log_info "Importing $image:latest into Rancher Desktop containerd using $NERDCTL_SOCKET..."
                 docker save "${image}:latest" | nerdctl --namespace k8s.io --address "$NERDCTL_SOCKET" load || true
             done
         fi
     elif docker info 2>&1 | grep -q 'Rancher Desktop'; then
         # Rancher Desktop with dockerd (moby) shares images with the cluster, so nothing to do
-        echo "[INFO] Rancher Desktop with dockerd detected. Images are already available to the cluster."
+        log_info "Rancher Desktop with dockerd detected. Images are already available to the cluster."
     else
-        echo "[WARN] No supported image import method found (k3d, nerdctl, or dockerd-moby). Images may not be available to your cluster."
+        log_warning "No supported image import method found (k3d, nerdctl, or dockerd-moby). Images may not be available to your cluster."
     fi
 }
 
 
 
+
+# Apply only the required manifests for the selected test(s)
+################################################################################
+# apply_manifests
+#   Applies only the required Kubernetes manifests for the selected test(s).
+################################################################################
 apply_manifests() {
-    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -k "$K8S_DIR"
+    # Always apply namespace first if present
+    if [ -f "$K8S_DIR/namespace.yaml" ]; then
+        log_info "Ensuring namespace exists: $K8S_DIR/namespace.yaml"
+        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -f "$K8S_DIR/namespace.yaml"
+    fi
+    local services=("${REQUIRED_SERVICES[@]}")
+    for svc in "${services[@]}"; do
+        if [ -f "$K8S_DIR/${svc}.yaml" ]; then
+            log_info "Applying $K8S_DIR/${svc}.yaml"
+            kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -f "$K8S_DIR/${svc}.yaml"
+        else
+            log_warning "Manifest $K8S_DIR/${svc}.yaml not found, skipping."
+        fi
+    done
 }
 
 
-# Run both simple-k6-test and simple-k6-websocket-test jobs in parallel
-run_jobs_parallel() {
-    # Clean up any previous jobs/pods
-    for job in simple-k6-test simple-k6-websocket-test; do
-        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" delete job "$job" -n "$NAMESPACE" --ignore-not-found --grace-period=0 --force || true
-        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" wait --for=delete job/"$job" -n "$NAMESPACE" --timeout=60s || true
-        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" delete pod -l job-name="$job" -n "$NAMESPACE" --ignore-not-found --grace-period=0 --force || true
-    done
 
-    # Launch both jobs in parallel
-    TEST_IMAGE_FULL="${TEST_IMAGE}:latest"
-    JOB_NAME="simple-k6-test" TEST_IMAGE="$TEST_IMAGE_FULL" envsubst < "$K8S_DIR/k6-job.yaml" | kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -f -
-    JOB_NAME="simple-k6-websocket-test" TEST_IMAGE="simple-k6-websocket-test:latest" envsubst < "$K8S_DIR/k6-job.yaml" | kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -f -
+# Helper: Clean up a job and its pods
+################################################################################
+# cleanup_job_and_pods
+#   Deletes a job and its pods from the namespace.
+#   Args:
+#     $1: Job name
+################################################################################
+cleanup_job_and_pods() {
+    local job="$1"
+    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" delete job "$job" -n "$NAMESPACE" --ignore-not-found --grace-period=0 --force || true
+    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" wait --for=delete job/"$job" -n "$NAMESPACE" --timeout=60s || true
+    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" delete pod -l job-name="$job" -n "$NAMESPACE" --ignore-not-found --grace-period=0 --force || true
+}
+
+# Helper: Render and apply job manifest
+################################################################################
+# render_and_apply_job
+#   Renders and applies the job manifest for a given test job.
+#   Args:
+#     $1: Job name
+################################################################################
+render_and_apply_job() {
+    local job="$1"
+    local manifest=""
+    if [ "$job" = "simple-k6-test-template" ]; then
+        manifest="$K8S_DIR/k6-job-simple.yaml"
+        TEST_IMAGE_FULL="simple-k6-test-template:latest"
+    elif [ "$job" = "simple-k6-websocket-test" ]; then
+        manifest="$K8S_DIR/k6-job-websocket.yaml"
+        TEST_IMAGE_FULL="simple-k6-websocket-test:latest"
+    else
+        log_error "Unknown job: $job. Skipping."
+        return 1
+    fi
+    log_info "Rendering manifest for job $job (image: $TEST_IMAGE_FULL) using $(basename "$manifest")"
+    JOB_NAME="$job" TEST_IMAGE="$TEST_IMAGE_FULL" envsubst < "$manifest" | tee /tmp/job-$job.yaml
+    log_info "Applying manifest for job $job:"
+    cat /tmp/job-$job.yaml
+    if ! kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -f /tmp/job-$job.yaml; then
+        log_error "Failed to apply job manifest for $job. Dumping manifest:"
+        cat /tmp/job-$job.yaml
+        cleanup
+        exit 1
+    fi
+    log_info "Jobs in namespace after apply:"
+    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" get jobs -n "$NAMESPACE" || true
+    log_info "Describe job $job (if exists):"
+    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" describe job "$job" -n "$NAMESPACE" || true
+    log_info "Pods in namespace after job apply:"
+    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" get pods -n "$NAMESPACE" -o wide || true
+    log_info "Events in namespace after job apply:"
+    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" get events -n "$NAMESPACE" --sort-by=.metadata.creationTimestamp || true
+    sleep 2
+}
+
+# Helper: Wait for job to exist
+################################################################################
+# wait_for_job_creation
+#   Waits for a job to be created in the namespace, with diagnostics if not found.
+#   Args:
+#     $1: Job name
+################################################################################
+wait_for_job_creation() {
+    local job="$1"
+    local found=false
+    for i in {1..20}; do
+        if kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" get job "$job" -n "$NAMESPACE" >/dev/null 2>&1; then
+            found=true
+            break
+        fi
+        log_info "Waiting for job $job to be created... ($i/20)"; sleep 1
+    done
+    if [ "$found" = false ]; then
+        log_error "Job $job was not created after waiting. Printing jobs and events for diagnostics..."
+        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" get jobs -n "$NAMESPACE" || true
+        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" get pods -n "$NAMESPACE" -o wide || true
+        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" get events -n "$NAMESPACE" --sort-by=.metadata.creationTimestamp || true
+        cleanup
+        exit 1
+    fi
+}
+
+
+# Helper: Wait for job completion, print logs, and return verdict (0=pass, 1=fail)
+################################################################################
+# wait_for_job_completion
+#   Waits for a job to complete, prints logs, and returns verdict (0=pass, 1=fail).
+#   Args:
+#     $1: Job name
+################################################################################
+wait_for_job_completion() {
+    local job="$1"
+    if kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" wait --for=condition=complete job/$job -n "$NAMESPACE" --timeout=600s; then
+        # Print logs only for the first pod of the job to avoid duplicate output
+        first_pod=$(kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" get pods -n "$NAMESPACE" -l job-name="$job" -o jsonpath='{.items[0].metadata.name}')
+        if [ -n "$first_pod" ]; then
+            kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" logs "$first_pod" -n "$NAMESPACE"
+        else
+            log_warning "No pod found for job $job to print logs."
+        fi
+        log_success "==================== [PASS] $job test completed successfully ===================="
+        return 0
+    else
+        log_error "==================== [FAIL] $job job did not complete successfully ===================="
+        return 1
+    fi
+}
+
+
+################################################################################
+# run_jobs_parallel
+#   Runs one or more test jobs in parallel, waits for completion, and prints a summary.
+#   Returns 0 if all jobs pass, 1 if any fail.
+################################################################################
+run_jobs_parallel() {
+    set +u
+    local jobs_to_run=()
+    if [ "$RUN_ALL" = true ]; then
+        jobs_to_run=(simple-k6-test-template simple-k6-websocket-test)
+    elif [ -n "${TEST_DIR:-}" ]; then
+        jobs_to_run=("$TEST_DIR")
+    fi
+
+    if [ "${#jobs_to_run[@]}" -eq 0 ]; then
+        log_error "No jobs to run. Check your arguments."
+        set -u
+        return 1
+    fi
+
+    # Clean up any previous jobs/pods
+    if [ "${#jobs_to_run[@]}" -gt 0 ]; then
+        for job in "${jobs_to_run[@]}"; do
+            cleanup_job_and_pods "$job"
+        done
+    fi
+
+    # Launch all jobs (apply manifests) before waiting for completion
+    if [ "${#jobs_to_run[@]}" -gt 0 ]; then
+        for job in "${jobs_to_run[@]}"; do
+            render_and_apply_job "$job"
+        done
+    fi
 
     # Wait for jobs to exist before proceeding
-    for job in simple-k6-test simple-k6-websocket-test; do
-        for i in {1..10}; do
-            if kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" get job "$job" -n "$NAMESPACE" >/dev/null 2>&1; then
-                break
-            fi
-            echo "[INFO] Waiting for job $job to be created... ($i/10)"; sleep 1
+    if [ "${#jobs_to_run[@]}" -gt 0 ]; then
+        for job in "${jobs_to_run[@]}"; do
+            wait_for_job_creation "$job"
         done
+    fi
+
+    # Wait for jobs to complete (in parallel if both), collect verdicts
+    local -a pids=()
+    local -a job_names=()
+    local -a job_results=()
+    local overall_result=0
+    if [ "${#jobs_to_run[@]}" -gt 0 ]; then
+        for job in "${jobs_to_run[@]}"; do
+            (
+                wait_for_job_completion "$job"
+            ) &
+            pids+=("$!")
+            job_names+=("$job")
+        done
+    fi
+
+    # Wait for all jobs and collect their exit codes
+    for idx in "${!pids[@]}"; do
+        local pid="${pids[$idx]}"
+        if wait "$pid"; then
+            job_results[$idx]=0
+        else
+            job_results[$idx]=1
+            overall_result=1
+        fi
     done
 
-    # Wait for both jobs to complete in parallel
-    (
-        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" wait --for=condition=complete job/simple-k6-test -n "$NAMESPACE" --timeout=600s && \
-        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" logs job/simple-k6-test -n "$NAMESPACE"
-    ) &
-    PID1=$!
-    (
-        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" wait --for=condition=complete job/simple-k6-websocket-test -n "$NAMESPACE" --timeout=600s && \
-        kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" logs job/simple-k6-websocket-test -n "$NAMESPACE"
-    ) &
-    PID2=$!
+    # Print summary
+    log_info "==================== TEST SUMMARY ===================="
+    if [ "${#job_names[@]}" -gt 0 ]; then
+        for idx in "${!job_names[@]}"; do
+            local job="${job_names[$idx]}"
+            local result="${job_results[$idx]:-1}"
+            if [ "$result" -eq 0 ]; then
+                log_success "[PASS] $job"
+            else
+                log_error   "[FAIL] $job"
+            fi
+        done
+    fi
+    log_info "======================================================"
 
-    wait $PID1 || kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" logs job/simple-k6-test -n "$NAMESPACE" || true
-    wait $PID2 || kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" logs job/simple-k6-websocket-test -n "$NAMESPACE" || true
+    set -u
+    return $overall_result
 }
 
 
-
-
-
+################################################################################
+# cleanup
+#   Cleans up all test resources in the namespace.
+################################################################################
 cleanup() {
-    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" delete -k "$K8S_DIR" --ignore-not-found
+    log_info "Cleaning up test resources..."
+    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" delete -f "$K8S_DIR" --ignore-not-found
 }
 
+################################################################################
+# cleanup_and_exit
+#   Calls cleanup on script exit or interruption.
+################################################################################
 cleanup_and_exit() {
-    echo "[INFO] Cleaning up test resources..."
     cleanup
-    exit 1
 }
 
 
+
+################################################################################
+# main
+#   Main entry point for argument parsing, setup, and test execution.
+################################################################################
 main() {
-    trap cleanup_and_exit SIGINT SIGTERM EXIT
+    # Always cleanup on exit or interruption
     local cleanup_flag=false
-    while getopts "hd:c" opt; do
-        case $opt in
-            h) usage; exit 0 ;;
-            d) TEST_IMAGE=$OPTARG ;;
-            c) cleanup_flag=true ;;
-            *) usage; exit 1 ;;
+    RUN_ALL=false
+    REQUIRED_SERVICES=()
+    trap cleanup_and_exit SIGINT SIGTERM EXIT
+
+    # Parse args and set RUN_ALL/TEST_DIR before any logic
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -h)
+                usage; exit 0 ;;
+            -a|--all)
+                RUN_ALL=true; shift ;;
+            -d)
+                TEST_DIR="$2"; shift 2 ;;
+            -c)
+                cleanup_flag=true; shift ;;
+            *)
+                usage; exit 1 ;;
         esac
     done
 
-    echo "[DEBUG] Using kubeconfig: $KUBECONFIG_LOCAL"
-    echo "[DEBUG] Using context: $KUBECTL_CONTEXT"
-    echo "[DEBUG] Running: kubectl --kubeconfig=\"$KUBECONFIG_LOCAL\" --context=\"$KUBECTL_CONTEXT\" version"
+    log_info "Using kubeconfig: $KUBECONFIG_LOCAL"
+    log_info "Using context: $KUBECTL_CONTEXT"
+    log_info "Running: kubectl --kubeconfig=\"$KUBECONFIG_LOCAL\" --context=\"$KUBECTL_CONTEXT\" version"
     kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" version || {
-        echo "[ERROR] Kubernetes cluster is not reachable. Please ensure your Rancher Desktop cluster is running and kubeconfig/context are correct." >&2
+        log_error "Kubernetes cluster is not reachable. Please ensure your Rancher Desktop cluster is running and kubeconfig/context are correct."
         exit 1
     }
 
     if [ "$cleanup_flag" = true ]; then
-        cleanup
         exit 0
     fi
 
-    if [ -z "$TEST_IMAGE" ]; then
-        echo "Test image name is required" >&2
+    if [ "$RUN_ALL" = false ] && [ -z "$TEST_DIR" ]; then
+        log_error "Test directory is required unless -a/--all is used"
         usage
         exit 1
     fi
 
+    # Determine required services for the selected test(s)
+    if [ "$RUN_ALL" = true ]; then
+        REQUIRED_SERVICES=(influxdb grafana websocket-echo)
+    elif [ "$TEST_DIR" = "simple-k6-test-template" ]; then
+        REQUIRED_SERVICES=(influxdb grafana)
+    elif [ "$TEST_DIR" = "simple-k6-websocket-test" ]; then
+        REQUIRED_SERVICES=(influxdb grafana websocket-echo)
+    else
+        REQUIRED_SERVICES=(influxdb)
+    fi
+
     build_images
     apply_manifests
-    run_jobs_parallel
-    trap - SIGINT SIGTERM EXIT
+
+    # Wait for dependent deployments to be ready
+    for deploy in "${REQUIRED_SERVICES[@]}"; do
+        log_info "Waiting for deployment/$deploy to be available..."
+        if ! kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" -n "$NAMESPACE" wait --for=condition=available --timeout=120s deployment/$deploy; then
+            log_error "Deployment $deploy is not available after waiting. Printing pods and events for diagnostics..."
+            kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" get pods -n "$NAMESPACE" -o wide || true
+            kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" get events -n "$NAMESPACE" --sort-by=.metadata.creationTimestamp || true
+            exit 1
+        fi
+    done
+
+    if run_jobs_parallel; then
+        log_success "==================== ALL TESTS PASSED ===================="
+        exit 0
+    else
+        log_error   "==================== ONE OR MORE TESTS FAILED ===================="
+        exit 1
+    fi
 }
 
 main "$@"

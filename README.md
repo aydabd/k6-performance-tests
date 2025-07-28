@@ -3,16 +3,26 @@
 ![Release](https://img.shields.io/github/v/release/aydabd/k6-performance-tests)
 ![Build Status](https://github.com/aydabd/k6-performance-tests/actions/workflows/ci.yml/badge.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Docker](https://img.shields.io/badge/Docker-ready-blue?logo=docker)
+![Rancher Desktop](https://img.shields.io/badge/Rancher%20Desktop-required-blue?logo=rancher)
 
 This project contains k6 tests for non-functional testing (load testing, stress testing, spike, etc.), packaged and ready to run with Docker. By using Docker, you can easily run your tests without having to install k6 or any other dependencies directly on your machine, apart from Docker itself.
 
 ## Installation Requirements
 
-Before you begin, ensure that you have Docker installed on your computer. If you do not already have Docker, you can follow the instructions for your platform:
+Before you begin, ensure you have the following installed on your computer:
 
-- [Install Docker for Windows](https://docs.docker.com/docker-for-windows/install/)
-- [Install Docker for macOS](https://docs.docker.com/docker-for-mac/install/)
-- [Install Docker for Linux](https://docs.docker.com/engine/install/)
+- **Rancher Desktop** (required for Kubernetes-based workflows)
+  - [Install Rancher Desktop for Windows, macOS, and Linux](https://docs.rancherdesktop.io/getting-started/installation/)
+- **Docker** (required for Docker-based workflows)
+  - [Install Docker for Windows](https://docs.docker.com/docker-for-windows/install/)
+  - [Install Docker for macOS](https://docs.docker.com/docker-for-mac/install/)
+  - [Install Docker for Linux](https://docs.docker.com/engine/install/)
+
+> **Note:**
+>
+> - Use **Rancher Desktop** if you want to run tests in a local Kubernetes cluster (recommended for k8s workflows).
+> - Use **Docker** if you only want to run tests via Docker Compose (no Kubernetes).
 
 For more information about Docker commands, see the [Tips & Tricks](TIPS_TRICKS.md) documentation.
 
@@ -44,10 +54,10 @@ You can also run the integration tests in a local Kubernetes cluster (for exampl
 ./k8s-deployment -d simple-k6-test-template
 ```
 
-To remove the Kubernetes resources after the test has finished:
+To run all test jobs run this:
 
 ```sh
-./k8s-deployment -c
+./k8s-deployment --all
 ```
 
 ## Viewing Test Results Via Grafana and influxdb
@@ -198,5 +208,7 @@ Please read our [CONTRIBUTING.md](CONTRIBUTING.md) file for more detailed inform
 Here is a list of improvements and features we plan to implement in the future. We welcome feedback and contributions that can help us realize these:
 
 - [x] Implement CI/CD to run tests in Kubernetes clusters.
+- [x] Add support for running tests in a local Kubernetes cluster using Rancher Desktop.
+- [ ] Add support for other clients.
 
 If you are interested in working on any of these points, or if you have other ideas, do not hesitate to open an issue or contact us directly.
