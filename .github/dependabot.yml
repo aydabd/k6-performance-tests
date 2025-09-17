@@ -8,3 +8,37 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+  # Pre-commit environment dependencies
+  - package-ecosystem: "conda"
+    directory: "/.githooks.d"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "09:30"
+    reviewers:
+      - "aydabd"
+    assignees:
+      - "aydabd"
+    labels:
+      - "dependencies"
+      - "conda"
+      - "pre-commit"
+    commit-message:
+      prefix: "deps(pre-commit)"
+      include: "scope"
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+    reviewers:
+      - "aydabd"
+    assignees:
+      - "aydabd"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "deps(docker)"
+      include: "scope"
