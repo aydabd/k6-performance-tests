@@ -5,7 +5,7 @@
 # for more information for other options see:
 # https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html#conda-yaml-spec-files
 
-name: mamba-githook
+name: k6-performance-test-env
 channels:
   - conda-forge
   - nodefaults
