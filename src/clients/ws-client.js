@@ -95,7 +95,7 @@ class WebSocketClient {
     /**
      * Add an event listener.
      * @param {string} event - The event name.
-     * @param {Function} handler - The event handler.
+     * @param {function(object): void} handler - The event handler.
      * @example
      * ```javascript
      * socket.addEventListener('message', (event) => console.log(event.data));
