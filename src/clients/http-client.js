@@ -46,7 +46,7 @@ class HttpHeaders {
         // Desctructure the options object to get the headers and authenticator and set default values if not provided
         let { headers = DEFAULT_API_HEADERS, authenticator = {} } = options;
         if (!authenticator) {
-            console.warn('No authenticator provided.');  
+            console.warn('No authenticator provided.');
             return Object.assign(options, { HttpHeadersInstance: this }, { headers: headers });
         }
         options = this.addAuthHeaders(options);
@@ -64,12 +64,12 @@ class HttpHeaders {
     addBasicAuthorization(options = {}) {
         let { authenticator = {} } = options;
         if (!authenticator) {
-            console.warn('No authenticator provided.');  
+            console.warn('No authenticator provided.');
             return options;
         }
         let basicAuth = authenticator.getBasicAuth() || '';
         if (!basicAuth) {
-            console.debug('Basic auth token is not set.');  
+            console.debug('Basic auth token is not set.');
             return options;
         }
         // set the Authorization header with the basic auth token
@@ -87,12 +87,12 @@ class HttpHeaders {
     addTokenBearerAuthorization(options = {}) {
         let { authenticator = {} } = options;
         if (!authenticator) {
-            console.debug('No authenticator provided.');  
+            console.debug('No authenticator provided.');
             return options;
         }
         let token = authenticator.getTokenBearerAuth() || '';
         if (!token) {
-            console.debug('Token bearer is not set.');  
+            console.debug('Token bearer is not set.');
             return options;
         }
         // set the Authorization header with the token bearer
@@ -237,7 +237,7 @@ class HttpClient {
     buildUrl() {
         // Check first that pathSegments is an array and contains values
         if (!Array.isArray(this.pathSegments)) {
-            console.error('pathSegments is not an array');  
+            console.error('pathSegments is not an array');
             return '';
         }
 
@@ -324,7 +324,7 @@ class HttpClient {
 
         // Send the request to the API
         let response = this.session.request(method.toUpperCase(), url, body, this.httpOptions);
-        console.debug(`Response: ${JSON.stringify(response, null, 2)}`);  
+        console.debug(`Response: ${JSON.stringify(response, null, 2)}`);
 
         // Reset path segments, body, method and params for the next request
         this.reset();
@@ -343,7 +343,7 @@ class HttpClient {
      */
     handleResponse(response) {
         if (!response) {
-            console.error('Response is undefined or null');  
+            console.error('Response is undefined or null');
             return {};
         }
 
@@ -387,7 +387,7 @@ class HttpClient {
             wsConnectionToken = JSON.parse(response.body).connectionToken || '';
         }
         if (!wsConnectionId || !wsConnectionToken) {
-            console.warn(`Websocket connection details not found: ${JSON.stringify(response, null, 2)}`);  
+            console.warn(`Websocket connection details not found: ${JSON.stringify(response, null, 2)}`);
             return {};
         }
         return { wsConnectionId: wsConnectionId, wsConnectionToken: wsConnectionToken };

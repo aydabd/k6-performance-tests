@@ -72,20 +72,20 @@ class Logger {
         switch (level) {
             case 'debug':
                 // Only log debug messages if verbose mode is enabled
-                if (this.verboseEnabled) console.debug(formattedMessage);  
+                if (this.verboseEnabled) console.debug(formattedMessage);
                 break;
             case 'info':
-                console.info(formattedMessage);  
+                console.info(formattedMessage);
                 break;
             case 'warn':
-                console.warn(formattedMessage);  
+                console.warn(formattedMessage);
                 break;
             case 'error':
-                console.error(formattedMessage);  
+                console.error(formattedMessage);
                 break;
             default:
                 // Fallback to log for any other levels
-                console.log(formattedMessage);  
+                console.log(formattedMessage);
         }
     }
 
@@ -98,7 +98,7 @@ class Logger {
         if (this.logLevels[level]) {
             this.currentLogLevel = level;
         } else {
-            console.warn(`Invalid log level: ${level}`);  
+            console.warn(`Invalid log level: ${level}`);
         }
     }
 

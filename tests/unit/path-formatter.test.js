@@ -75,7 +75,7 @@ describe('Formatter.Type', () => {
     });
 
     it('exposes SNAKE_CASE type', () => {
-        expect(Formatter.Type.SNAKE_CASE).toBe('sanke_case');
+        expect(Formatter.Type.SNAKE_CASE).toBe('snake_case');
     });
 
     it('exposes CAMEL_CASE type', () => {

@@ -42,7 +42,7 @@ class WSOptionsGenerator {
     constructor(options = {}) {
         const debugOptions = { ...options };
         options.baseURL = new BaseUrl(options).baseURL;
-        console.log(`[WSOptionsGenerator] Full options:`, JSON.stringify(debugOptions));  
+        console.log(`[WSOptionsGenerator] Full options:`, JSON.stringify(debugOptions));
         // Override the headers if not provided
         if (!options.headers) {
             options.authenticator = new Authenticator(options);
@@ -80,15 +80,15 @@ class WebSocketClient {
         this.params = this.wsOptions.params;
         this.options = this.wsOptions.options;
 
-        console.log(`[WebSocketClient] Connecting to URL: ${this.url}`);  
-        console.log(`[WebSocketClient] Params:`, JSON.stringify(this.params));  
+        console.log(`[WebSocketClient] Connecting to URL: ${this.url}`);
+        console.log(`[WebSocketClient] Params:`, JSON.stringify(this.params));
         this.socket = new WebSocket(this.url, this.params);
         this.tags = this.params.tags;
         this.headers = this.params.headers;
         this.timeoutDuration = this.options.timeoutDuration || 30000; // 30 seconds
         this.timeoutId = null;
         this.sessionId = this.options.sessionId || this.tags.sessionId;
-        console.log(`Created WebSocket Instance with url: ${this.url}, and sessionId: ${this.tags.sessionId}`);  
+        console.log(`Created WebSocket Instance with url: ${this.url}, and sessionId: ${this.tags.sessionId}`);
     }
 
     /**
@@ -130,7 +130,7 @@ class WebSocketClient {
             message = JSON.stringify(message);
         }
         this.socket.send(message);
-        console.log(`Sent message: ${message}`);  
+        console.log(`Sent message: ${message}`);
     }
 
     /**
@@ -141,9 +141,9 @@ class WebSocketClient {
      * ```
      */
     startTimeout() {
-        console.log(`Starting timeout for ${this.timeoutDuration} ms`);  
-        this.timeoutId = setTimeout(() => {  
-            console.log('Closing WebSocket connection due to timeout.');  
+        console.log(`Starting timeout for ${this.timeoutDuration} ms`);
+        this.timeoutId = setTimeout(() => {
+            console.log('Closing WebSocket connection due to timeout.');
             this.close(1006, 'Connection Timeout');
         }, this.timeoutDuration);
     }
@@ -157,7 +157,7 @@ class WebSocketClient {
      */
     clTimeout() {
         if (this.timeoutId) {
-            clearTimeout(this.timeoutId);  
+            clearTimeout(this.timeoutId);
             this.timeoutId = null;
         }
     }
@@ -181,23 +181,23 @@ class WebSocketClient {
      */
     onSignalROpen() {
         this.signalRhubHandshake();
-        console.log('SignalR Hub connection opened.');  
+        console.log('SignalR Hub connection opened.');
     }
 
     onSignalRMessage(message = '') {
         try {
             const dataBody = JSON.parse(message.data.replace('\u001e', ''));
             if (!dataBody.target || dataBody === '') {
-                console.log('SignalR Hub connection message received.');  
+                console.log('SignalR Hub connection message received.');
                 return;
             }
             switch (dataBody.target) {
                 default:
-                    console.log(`Unhandled message: ${JSON.stringify(dataBody)}`);  
+                    console.log(`Unhandled message: ${JSON.stringify(dataBody)}`);
                     break;
             }
         } catch (error) {
-            console.log(`Error parsing message: ${error}`);  
+            console.log(`Error parsing message: ${error}`);
         }
     }
 
@@ -210,7 +210,7 @@ class WebSocketClient {
      * ```
      */
     onClose(message = {}) {
-        console.log(`WebSocket connection closed: ${JSON.stringify(message)}`);  
+        console.log(`WebSocket connection closed: ${JSON.stringify(message)}`);
         this.clTimeout();
     }
 
@@ -223,7 +223,7 @@ class WebSocketClient {
      * ```
      */
     onError(message = {}) {
-        console.log(`WebSocket connection error: ${JSON.stringify(message)}`);  
+        console.log(`WebSocket connection error: ${JSON.stringify(message)}`);
         this.clTimeout();
     }
 
@@ -235,7 +235,7 @@ class WebSocketClient {
      * ```
      */
     setupSignalREventListeners() {
-        console.log('Setting up WebSocket event listeners.');  
+        console.log('Setting up WebSocket event listeners.');
         this.addEventListener('open', () => {
             this.onSignalROpen();
             this.addEventListener('message', (message) => this.onSignalRMessage(message));

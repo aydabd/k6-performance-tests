@@ -101,7 +101,7 @@ class HttpErrorHandler {
  *   This can help you identify the source of the error.
  */
 const ErrorHandler = new HttpErrorHandler((errorData) => {
-    console.error(JSON.stringify(errorData, null, 2));  
+    console.error(JSON.stringify(errorData, null, 2));
 });
 
 export { ErrorHandler };
