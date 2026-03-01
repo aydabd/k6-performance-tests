@@ -41,7 +41,6 @@ install_npm_packages() {
   if [ -f package.json ]; then
     # install npm packages
     npm install --no-save --no-fund --no-audit || return 1
-    npm update --no-fund --no-audit || return 1
   else
     printf "package.json not found"
     return 1
