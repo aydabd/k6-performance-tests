@@ -43,4 +43,12 @@
 
 ## Completed Plans
 
-*None yet.*
+<!-- markdownlint-disable MD013 -->
+
+| Plan | Title | Phase | PR |
+| ---- | ----- | ----- | -- |
+| WP-10 | Unit Test Infrastructure | 1 | v2.4.0 |
+| WP-09 | K6 Runtime & Extension Upgrades | 1 | v2.4.0 |
+| WP-11 | K6 API Migration (Experimental → Stable) | 1 | v2.4.0 |
+
+<!-- markdownlint-enable MD013 -->
