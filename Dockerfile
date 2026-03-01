@@ -24,6 +24,7 @@
 # 1. Build the base image with the necessary k6 extension. Example:
 #    docker build -t k6-template-influxdb-base:latest . \
 #                   --build-arg XK6_VERSION=latest \
+#                   --build-arg K6_VERSION=latest \
 #                   --build-arg XK6_EXTENSION_NAME=xk6-output-influxdb \
 #                   --build-arg XK6_EXTENSION_VERSION=latest
 #
@@ -95,7 +96,7 @@ ARG XK6_EXTENSION_VERSION="latest"
 WORKDIR /xk6
 
 # Build k6 with extension
-RUN xk6 build --with "${SOURCE_URL}/${XK6_EXTENSION_NAME}@${XK6_EXTENSION_VERSION}"
+RUN xk6 build --k6-version ${K6_VERSION} --with "${SOURCE_URL}/${XK6_EXTENSION_NAME}@${XK6_EXTENSION_VERSION}"
 
 # Create a new stage to build the final base image
 FROM alpine:${ALPINE_VERSION} AS base

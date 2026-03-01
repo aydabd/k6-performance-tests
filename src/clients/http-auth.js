@@ -47,8 +47,8 @@ class BasicAuthenticator extends IAuthenticator {
     constructor(options = {}) {
         super();
         let { username, password } = options;
-        this.username = username || __ENV.API_USERNAME || ''; // eslint-disable-line no-undef
-        this.password = password || __ENV.API_PASSWORD || ''; // eslint-disable-line no-undef
+        this.username = username || __ENV.API_USERNAME || '';
+        this.password = password || __ENV.API_PASSWORD || '';
     }
 
     /**
@@ -57,7 +57,7 @@ class BasicAuthenticator extends IAuthenticator {
      */
     getAuth() {
         if (!this.username || !this.password) {
-            console.debug('Username or password is missing, No basic authorization'); // eslint-disable-line no-undef
+            console.debug('Username or password is missing, No basic authorization');
             return '';
         }
         return `${encoding.b64encode(`${this.username}:${this.password}`)}`;
@@ -79,12 +79,12 @@ class TokenBearerAuthenticator extends IAuthenticator {
     constructor(options = {}) {
         super();
         let { token } = options;
-        this.token = token || __ENV.API_TOKEN || ''; // eslint-disable-line no-undef
+        this.token = token || __ENV.API_TOKEN || '';
     }
 
     getAuth() {
         if (!this.token) {
-            console.debug('Token is missing, No token bearer authorization'); // eslint-disable-line no-undef
+            console.debug('Token is missing, No token bearer authorization');
             return '';
         }
         return `${this.token}`;
@@ -112,9 +112,9 @@ class Authenticator {
      */
     constructor(options = {}) {
         let { username = '', password = '', token = '' } = options;
-        this.username = username || __ENV.API_USERNAME || ''; // eslint-disable-line no-undef
-        this.password = password || __ENV.API_PASSWORD || ''; // eslint-disable-line no-undef
-        this.token = token || __ENV.API_TOKEN || ''; // eslint-disable-line no-undef
+        this.username = username || __ENV.API_USERNAME || '';
+        this.password = password || __ENV.API_PASSWORD || '';
+        this.token = token || __ENV.API_TOKEN || '';
     }
 
     /**

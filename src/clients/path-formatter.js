@@ -118,7 +118,7 @@ class Formatter {
      */
     static get Type() {
         return {
-            SNAKE_CASE: 'sanke_case',
+            SNAKE_CASE: 'snake_case',
             KEBAB_CASE: 'kebab-case',
             CAMEL_CASE: 'camelCase',
             PASCAL_CASE: 'PascalCase',
