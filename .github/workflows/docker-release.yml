@@ -5,10 +5,24 @@ on:
   push:
     tags:
       - 'v[0-9]+.[0-9]+*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.0.0)'
+        required: true
+  workflow_call:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.0.0)'
+        required: true
+        type: string
 
 permissions:
   contents: write
   packages: write
+
+env:
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   build-and-release:
@@ -16,6 +30,8 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Log in to GitHub Container Registry
@@ -26,22 +42,22 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push Docker image
         run: |
-          docker build -t ghcr.io/${{ github.repository }}/k6-template-influxdb-base:${{ github.ref_name }} .
-          docker push ghcr.io/${{ github.repository }}/k6-template-influxdb-base:${{ github.ref_name }}
+          docker build -t ghcr.io/${{ github.repository }}/k6-template-influxdb-base:${{ env.RELEASE_TAG }} .
+          docker push ghcr.io/${{ github.repository }}/k6-template-influxdb-base:${{ env.RELEASE_TAG }}
 
           docker build \
             --build-arg BASE_IMAGE_NAME=ghcr.io/${{ github.repository }}/k6-template-influxdb-base \
-            --build-arg BASE_IMAGE_VERSION=${{ github.ref_name }} \
-            -t ghcr.io/${{ github.repository }}/simple-k6-test-template:${{ github.ref_name }} \
+            --build-arg BASE_IMAGE_VERSION=${{ env.RELEASE_TAG }} \
+            -t ghcr.io/${{ github.repository }}/simple-k6-test-template:${{ env.RELEASE_TAG }} \
             -f simple-k6-test-template/Dockerfile .
-          docker push ghcr.io/${{ github.repository }}/simple-k6-test-template:${{ github.ref_name }}
+          docker push ghcr.io/${{ github.repository }}/simple-k6-test-template:${{ env.RELEASE_TAG }}
       - name: Update GitHub Release with Docker images
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ env.RELEASE_TAG }}
           append_body: true
           body: |
             ## Docker Images
 
-            - [`ghcr.io/${{ github.repository }}/k6-template-influxdb-base:${{ github.ref_name }}`](https://ghcr.io/${{ github.repository }}/k6-template-influxdb-base)
-            - [`ghcr.io/${{ github.repository }}/simple-k6-test-template:${{ github.ref_name }}`](https://ghcr.io/${{ github.repository }}/simple-k6-test-template)
+            - [`ghcr.io/${{ github.repository }}/k6-template-influxdb-base:${{ env.RELEASE_TAG }}`](https://ghcr.io/${{ github.repository }}/k6-template-influxdb-base)
+            - [`ghcr.io/${{ github.repository }}/simple-k6-test-template:${{ env.RELEASE_TAG }}`](https://ghcr.io/${{ github.repository }}/simple-k6-test-template)
