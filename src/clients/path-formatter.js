@@ -13,7 +13,7 @@ class PathFormatter {
      * PathFormatter.toSnakeCase('FOO_BAR'); // returns 'foo_bar'
      */
     static toSnakeCase(str) {
-        return str.replace(/_/g, '_').toLowerCase();
+        return str.replace(/-/g, '_').toLowerCase();
     }
 
     /**
