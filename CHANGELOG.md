@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.4.0](https://github.com/aydabd/k6-performance-tests/compare/v2.3.2...v2.4.0) (2026-03-01)
+
+
+### Features
+
+* WP-10 unit test infra + WP-11 k6 API migration + WP-09 Dockerfile fix ([#83](https://github.com/aydabd/k6-performance-tests/issues/83)) ([9c426de](https://github.com/aydabd/k6-performance-tests/commit/9c426decf16f9262b82e335279fd553b26ca1cc4))
+
+
+### Documentation
+
+* split modernization plan into focused work packages with k6 API migration audit ([#81](https://github.com/aydabd/k6-performance-tests/issues/81)) ([c4c43ae](https://github.com/aydabd/k6-performance-tests/commit/c4c43ae2588759d44ab3e6a70a7c4ceeeb86797c))
+
 ## [2.3.2](https://github.com/aydabd/k6-performance-tests/compare/v2.3.1...v2.3.2) (2026-03-01)
 
 
