@@ -47,7 +47,7 @@ Closes #
 - [ ] Integration tests added/updated where applicable
 - [ ] Edge cases and error paths are tested
 - [ ] All tests pass locally
-- [ ] Coverage meets project threshold
+- [ ] Coverage meets project threshold (when tooling is configured)
 
 ### Review Readiness
 

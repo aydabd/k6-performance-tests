@@ -1,6 +1,11 @@
 
 # AGENTS Instructions
 
+<!-- Single source of truth is .github/instructions/project.instructions.md -->
+<!-- This file provides repo-specific operational details for all AI agents. -->
+
+@.github/instructions/project.instructions.md
+
 These guidelines apply to the entire repository and should be followed by any automated agent, bot, or contributor.
 
 ## Environment Setup

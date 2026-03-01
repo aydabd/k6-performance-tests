@@ -27,7 +27,7 @@ Add a test only when it satisfies at least ONE of:
 **Do NOT add tests for:**
 
 - Trivial getters/setters with no logic.
-- Behaviour already fully covered by an existing test.
+- Behavior already fully covered by an existing test.
 - Happy-path-only tests when edge cases exist and are untested.
 - Tests that always pass regardless of implementation.
 
@@ -53,7 +53,7 @@ Sub-tests use plain, readable English:
 2. **Act** — single call to the unit under test.
 3. **Assert** — check the outcome and produce a message that explains the failure.
 
-Keep each test focused on **one behaviour**. When multiple scenarios exist, use
+Keep each test focused on **one behavior**. When multiple scenarios exist, use
 table rows rather than separate functions.
 
 ## Corner Cases Checklist
