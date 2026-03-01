@@ -41,7 +41,6 @@ jobs:
           tag_name: ${{ github.ref_name }}
           append_body: true
           body: |
-
             ## Docker Images
 
             - [`ghcr.io/${{ github.repository }}/k6-template-influxdb-base:${{ github.ref_name }}`](https://ghcr.io/${{ github.repository }}/k6-template-influxdb-base)
