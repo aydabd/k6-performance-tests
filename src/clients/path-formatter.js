@@ -75,7 +75,7 @@ class PathFormatter {
      * @returns {string} The constant case string.
      */
     static toConstantCase(str) {
-        return str.replace(/_/g, '_').toUpperCase();
+        return str.replace(/-/g, '_').toUpperCase();
     }
 
     /**
