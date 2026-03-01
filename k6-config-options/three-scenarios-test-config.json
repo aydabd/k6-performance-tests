@@ -1,4 +1,7 @@
 {
+  "tags": {
+    "testRunId": "default"
+  },
   "insecureSkipTLSVerify": true,
   "discardResponseBodies": true,
   "noUsageReport": true,

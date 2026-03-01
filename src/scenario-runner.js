@@ -29,7 +29,7 @@ class ScenarioRunner {
      * Create a new ScenarioRunner instance.
      */
     constructor() {
-        /** @type {Map<string, {setup: Function, exec: Function, teardown: Function}>} */
+        /** @type {Map<string, {setup: function(): object, exec: function(object): void, teardown: function(object): void}>} */
         this._scenarios = new Map();
     }
 
@@ -37,9 +37,9 @@ class ScenarioRunner {
      * Register a scenario with its lifecycle functions.
      * @param {string} name - The scenario name (must match k6 scenario config).
      * @param {object} lifecycle - The lifecycle functions.
-     * @param {Function} [lifecycle.setup] - Setup function returning scenario-specific data.
-     * @param {Function} lifecycle.exec - Execution function receiving setup data.
-     * @param {Function} [lifecycle.teardown] - Teardown function receiving setup data.
+     * @param {function(): object} [lifecycle.setup] - Setup function returning scenario-specific data.
+     * @param {function(object): void} lifecycle.exec - Execution function receiving setup data.
+     * @param {function(object): void} [lifecycle.teardown] - Teardown function receiving setup data.
      * @throws {Error} If name is empty or exec is not provided.
      * @returns {ScenarioRunner} this runner for chaining.
      */
@@ -73,7 +73,7 @@ class ScenarioRunner {
     /**
      * Run setup for a single scenario.
      * @param {string} name - The scenario name.
-     * @returns {*} The setup data for the scenario.
+     * @returns {object} The setup data for the scenario.
      * @throws {Error} If the scenario is not registered.
      */
     setup(name) {
@@ -85,7 +85,7 @@ class ScenarioRunner {
      * Execute a scenario with the provided data.
      * @param {string} name - The scenario name.
      * @param {object} data - Combined setup data from setupAll().
-     * @returns {*} The return value of the exec function.
+     * @returns {object} The return value of the exec function.
      * @throws {Error} If the scenario is not registered.
      */
     exec(name, data = {}) {
