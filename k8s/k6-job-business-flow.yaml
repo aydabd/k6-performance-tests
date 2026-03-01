@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-business-flow
+  namespace: k6-tests
+  labels:
+    app: k6-business-flow
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6-business-flow
+          image: business-flow-template:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: BUSINESS_FLOW_NAME
+              value: "default-flow"
+            - name: TEST_RUN_ID
+              value: "default"
+            - name: K6_INFLUXDB_ORGANIZATION
+              value: "k6testorg"
+            - name: K6_INFLUXDB_BUCKET
+              value: "simple-k6-tests"
+            - name: K6_INFLUXDB_TOKEN
+              value: "y3zTEWhDLPfa05-op-gKftVHhbEkmNL98uijqokTMr_JHdlK59PpitKl6QdXNF3YQVrLXdtTdjISNSqWtFwbFw=="
+            - name: K6_INFLUXDB_ADDR
+              value: "http://influxdb:8086"
+            - name: K6_OTEL_EXPORTER_PROTOCOL
+              value: "grpc"
+            - name: K6_OTEL_GRPC_EXPORTER_ENDPOINT
+              value: "otel-collector:4317"
+            - name: K6_OTEL_GRPC_EXPORTER_INSECURE
+              value: "true"

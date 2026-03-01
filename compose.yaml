@@ -131,6 +131,26 @@ services:
       - ./grafana/tempo/tempo-config.yaml:/etc/tempo/config.yaml:ro
     command: ["-config.file=/etc/tempo/config.yaml"]
 
+  business-flow-template:
+    profiles:
+      - business-flows
+      - flow-default
+    build:
+      context: .
+      dockerfile: business-flow-template/Dockerfile
+    image: business-flow-template:latest
+    depends_on:
+      - k6-template-influxdb-base
+      - influxdb
+      - nginx
+    environment:
+      - BUSINESS_FLOW_NAME=${BUSINESS_FLOW_NAME:-default-flow}
+      - TEST_RUN_ID=${TEST_RUN_ID:-default}
+    volumes:
+      - ./business-flow-template/test-logs:/performance-k6/test-logs
+    networks:
+      - k6-webnet
+
 volumes:
   k6-influxdb-data: {}
   k6-influxdb-config: {}
