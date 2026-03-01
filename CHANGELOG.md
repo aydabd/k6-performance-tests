@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.2](https://github.com/aydabd/k6-performance-tests/compare/v2.3.1...v2.3.2) (2026-03-01)
+
+
+### Bug Fixes
+
+* exclude CHANGELOG.md from markdownlint and chain docker-release from release-please ([#77](https://github.com/aydabd/k6-performance-tests/issues/77)) ([d186af4](https://github.com/aydabd/k6-performance-tests/commit/d186af42c3706487c3371114ae168885790db8fc))
+
 ## [2.3.1](https://github.com/aydabd/k6-performance-tests/compare/v2.3.0...v2.3.1) (2026-03-01)
 
 
