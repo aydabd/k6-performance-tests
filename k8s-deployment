@@ -313,20 +313,41 @@ wait_for_job_creation() {
 ################################################################################
 wait_for_job_completion() {
     local job="$1"
-    if kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" wait --for=condition=complete job/$job -n "$NAMESPACE" --timeout=600s; then
-        # Print logs only for the first pod of the job to avoid duplicate output
-        first_pod=$(kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" get pods -n "$NAMESPACE" -l job-name="$job" -o jsonpath='{.items[0].metadata.name}')
-        if [ -n "$first_pod" ]; then
-            kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" logs "$first_pod" -n "$NAMESPACE"
-        else
-            log_warning "No pod found for job $job to print logs."
+    local max_wait=600
+    local elapsed=0
+    local poll_interval=5
+    while [ "$elapsed" -lt "$max_wait" ]; do
+        local complete_status
+        local failed_status
+        complete_status=$(kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" \
+            get job "$job" -n "$NAMESPACE" \
+            -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' 2>/dev/null || true)
+        failed_status=$(kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" \
+            get job "$job" -n "$NAMESPACE" \
+            -o jsonpath='{.status.conditions[?(@.type=="Failed")].status}' 2>/dev/null || true)
+        if [ "$complete_status" = "True" ]; then
+            # Print logs only for the first pod of the job to avoid duplicate output
+            first_pod=$(kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" get pods -n "$NAMESPACE" -l job-name="$job" -o jsonpath='{.items[0].metadata.name}')
+            if [ -n "$first_pod" ]; then
+                kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" logs "$first_pod" -n "$NAMESPACE"
+            else
+                log_warning "No pod found for job $job to print logs."
+            fi
+            log_success "==================== [PASS] $job test completed successfully ===================="
+            return 0
+        elif [ "$failed_status" = "True" ]; then
+            log_error "==================== [FAIL] $job job failed ===================="
+            first_pod=$(kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" get pods -n "$NAMESPACE" -l job-name="$job" -o jsonpath='{.items[0].metadata.name}')
+            if [ -n "$first_pod" ]; then
+                kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" logs "$first_pod" -n "$NAMESPACE" || true
+            fi
+            return 1
         fi
-        log_success "==================== [PASS] $job test completed successfully ===================="
-        return 0
-    else
-        log_error "==================== [FAIL] $job job did not complete successfully ===================="
-        return 1
-    fi
+        sleep "$poll_interval"
+        elapsed=$((elapsed + poll_interval))
+    done
+    log_error "==================== [FAIL] $job job timed out after ${max_wait}s ===================="
+    return 1
 }
 
 
