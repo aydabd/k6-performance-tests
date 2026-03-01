@@ -72,20 +72,20 @@ class Logger {
         switch (level) {
             case 'debug':
                 // Only log debug messages if verbose mode is enabled
-                if (this.verboseEnabled) console.debug(formattedMessage); // eslint-disable-line no-undef
+                if (this.verboseEnabled) console.debug(formattedMessage);  
                 break;
             case 'info':
-                console.info(formattedMessage); // eslint-disable-line no-undef
+                console.info(formattedMessage);  
                 break;
             case 'warn':
-                console.warn(formattedMessage); // eslint-disable-line no-undef
+                console.warn(formattedMessage);  
                 break;
             case 'error':
-                console.error(formattedMessage); // eslint-disable-line no-undef
+                console.error(formattedMessage);  
                 break;
             default:
                 // Fallback to log for any other levels
-                console.log(formattedMessage); // eslint-disable-line no-undef
+                console.log(formattedMessage);  
         }
     }
 
@@ -98,7 +98,7 @@ class Logger {
         if (this.logLevels[level]) {
             this.currentLogLevel = level;
         } else {
-            console.warn(`Invalid log level: ${level}`); // eslint-disable-line no-undef
+            console.warn(`Invalid log level: ${level}`);  
         }
     }
 

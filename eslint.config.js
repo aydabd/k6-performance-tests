@@ -20,6 +20,37 @@ const config = [
             strict: "error",
         },
     },
+    {
+        files: ["src/**/*.js"],
+        languageOptions: {
+            sourceType: "module",
+            globals: {
+                // k6 built-in globals available in the k6 runtime
+                crypto: "readonly",
+                URLSearchParams: "readonly",
+                __ENV: "readonly",
+                setTimeout: "readonly",
+                clearTimeout: "readonly",
+                console: "readonly",
+            },
+        },
+    },
+    {
+        files: ["tests/**/*.js"],
+        languageOptions: {
+            sourceType: "module",
+            globals: {
+                console: "readonly",
+                global: "readonly",
+                Buffer: "readonly",
+                process: "readonly",
+            },
+        },
+        rules: {
+            "jsdoc/require-jsdoc": "off",
+            "jsdoc/require-description": "off",
+        },
+    },
 ];
 
 export default config;
