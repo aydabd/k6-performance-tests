@@ -106,7 +106,7 @@ class JwtAuthenticator extends IAuthenticator {
 
     constructor(options = {}) {
         super();
-        let { loginUrl, username, password, tokenField } = options;
+        const { loginUrl, username, password, tokenField } = options;
         this.loginUrl = loginUrl || __ENV.JWT_LOGIN_URL || '';
         this.username = username || __ENV.JWT_USERNAME || '';
         this.password = password || __ENV.JWT_PASSWORD || '';
@@ -149,7 +149,7 @@ class ApiKeyAuthenticator extends IAuthenticator {
 
     constructor(options = {}) {
         super();
-        let { apiKey, apiKeyHeader } = options;
+        const { apiKey, apiKeyHeader } = options;
         this.apiKey = apiKey || __ENV.API_KEY || '';
         this.apiKeyHeader = apiKeyHeader || __ENV.API_KEY_HEADER || 'X-API-Key';
     }
@@ -189,7 +189,7 @@ class OAuth2ClientCredentials extends IAuthenticator {
 
     constructor(options = {}) {
         super();
-        let { tokenUrl, clientId, clientSecret, scope } = options;
+        const { tokenUrl, clientId, clientSecret, scope } = options;
         this.tokenUrl = tokenUrl || __ENV.OAUTH2_TOKEN_URL || '';
         this.clientId = clientId || __ENV.OAUTH2_CLIENT_ID || '';
         this.clientSecret = clientSecret || __ENV.OAUTH2_CLIENT_SECRET || '';

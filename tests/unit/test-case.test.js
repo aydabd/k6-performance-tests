@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { TestCase, TestCaseBuilder } from '../../src/test-case.js';
+import * as k6 from 'k6';
 
 describe('TestCaseBuilder', () => {
     const validBuilder = () => new TestCaseBuilder('TC-001', 'Login Flow');
@@ -105,19 +106,22 @@ describe('TestCase', () => {
             expect(result).toBe(42);
         });
 
-        it('formats group name with id and title', () => {
+        it('calls k6 group with [id] title format', () => {
+            const groupSpy = vi.spyOn(k6, 'group');
             const tc = buildTestCase();
-            // The mock group() simply calls fn(), so we verify
-            // the groupName format indirectly via the constructor
-            const groupName = tc.id ? `[${tc.id}] ${tc.title}` : tc.title;
-            expect(groupName).toBe('[TC-001] Login Flow');
+            const fn = () => 42;
+            tc.toK6Group(fn);
+            expect(groupSpy).toHaveBeenCalledWith('[TC-001] Login Flow', fn);
+            groupSpy.mockRestore();
         });
 
-        it('uses title only when id is empty', () => {
+        it('calls k6 group with title only when id is empty', () => {
+            const groupSpy = vi.spyOn(k6, 'group');
             const tc = new TestCase({ id: '', title: 'No ID Test' });
-            // Verify groupName format
-            const groupName = tc.id ? `[${tc.id}] ${tc.title}` : tc.title;
-            expect(groupName).toBe('No ID Test');
+            const fn = () => 99;
+            tc.toK6Group(fn);
+            expect(groupSpy).toHaveBeenCalledWith('No ID Test', fn);
+            groupSpy.mockRestore();
         });
     });
 
