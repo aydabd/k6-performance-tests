@@ -15,7 +15,7 @@
 class HttpErrorHandler {
     /**
      * Creates a new HttpErrorHandler instance.
-     * @param {Function} logErrorDetails - A function that logs error details.
+     * @param {function(object): void} logErrorDetails - A function that logs error details.
      * The function should accept an object with error details as its only argument.
      * The object will contain the following properties:
      * - url: The URL of the request that caused the error.

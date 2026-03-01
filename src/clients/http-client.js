@@ -203,7 +203,7 @@ class HttpClient {
     /**
      * Register a custom format for a specific segment.
      * @param {string} segment - The segment to apply the custom format to.
-     * @param {Function} formatFunction - The formatting function to apply to the segment.
+     * @param {function(string): string} formatFunction - The formatting function to apply to the segment.
      */
     registerSegmentFormat(segment, formatFunction) {
         this.segmentFormat[segment] = formatFunction;
