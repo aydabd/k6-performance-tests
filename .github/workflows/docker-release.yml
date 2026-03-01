@@ -13,6 +13,7 @@ permissions:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v6
       - name: Set up Docker Buildx
@@ -34,13 +35,11 @@ jobs:
             -t ghcr.io/${{ github.repository }}/simple-k6-test-template:${{ github.ref_name }} \
             -f simple-k6-test-template/Dockerfile .
           docker push ghcr.io/${{ github.repository }}/simple-k6-test-template:${{ github.ref_name }}
-      - name: Create GitHub Release
+      - name: Update GitHub Release with Docker images
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
+          append_body: true
           body: |
             ## Docker Images
 

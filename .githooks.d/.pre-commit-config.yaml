@@ -37,3 +37,9 @@ repos:
     entry: ./linters-jsdoc2md -d
     language: script
     pass_filenames: false
+- repo: https://github.com/compilerla/conventional-pre-commit
+  rev: v3.6.0
+  hooks:
+  - id: conventional-pre-commit
+    stages: [commit-msg]
+    args: [feat, fix, perf, docs, chore, ci, test, refactor]
