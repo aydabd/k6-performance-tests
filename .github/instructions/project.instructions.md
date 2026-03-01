@@ -52,7 +52,7 @@ This repository contains **k6 performance tests** for non-functional testing
 - Shared client code lives in `src/clients/`.
 - k6 config options live in `k6-config-options/`.
 - Test error cases, not just happy paths.
-- Minimum 80 % coverage for shared utility code.
+- Minimum 80% coverage for shared utility code.
 
 ## Documentation
 
