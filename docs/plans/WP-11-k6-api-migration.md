@@ -5,12 +5,12 @@
 ## Goal
 
 Migrate all deprecated and experimental k6 APIs in the repository to their
-stable replacements based on k6 v1.4.0–v1.6.1 release changes. This ensures
+stable replacements based on k6 v1.0.0–v1.6.1 release changes. This ensures
 the framework uses supported, long-term APIs and avoids future breakage.
 
 ## Background — K6 API Changes
 
-The following changes were identified from k6 release notes (v1.2.1–v1.6.1):
+The following changes were identified from k6 release notes and docs (v1.0.0–v1.6.1):
 
 ### Graduated to Stable
 
@@ -40,7 +40,12 @@ These are not currently used in the repository but are listed for awareness:
 | --- | --- | --- |
 | `https://jslib.k6.io/url/1.0.0/index.js` (`URLSearchParams`) | Native `URL` / `URLSearchParams` in k6 runtime | v1.0+ |
 | `https://jslib.k6.io/k6-utils/1.6.0/index.js` (`uuidv4`) | `crypto.randomUUID()` | v1.0+ |
-| `https://jslib.k6.io/httpx/0.1.0/index.js` | Latest `httpx/0.1.0` (or native `k6/http`) | — |
+
+### jslib Version Upgrades / Alternatives
+
+| jslib library | Recommended alternative | Notes |
+| --- | --- | --- |
+| `https://jslib.k6.io/httpx/0.1.0/index.js` | Newer `httpx` releases or native `k6/http` | `httpx` is not a built-in; prefer upgrading jslib or using `k6/http` where its API is sufficient. |
 
 ### New Features Available for Adoption (reference for other WPs)
 

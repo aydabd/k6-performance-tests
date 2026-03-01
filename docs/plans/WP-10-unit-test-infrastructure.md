@@ -12,7 +12,7 @@ Establish a unit test framework for shared client code so that changes to
 | ID | Requirement |
 | --- | --- |
 | WP10-R1 | Add a test runner compatible with k6 ES module syntax (e.g., Vitest or Jest with ESM) |
-| WP10-R2 | Mock k6 built-in modules (`k6`, `k6/http`, `k6/encoding`, `k6/ws`) for unit testing |
+| WP10-R2 | Mock k6 built-in modules (`k6`, `k6/http`, `k6/encoding`, `k6/websockets`) for unit testing |
 | WP10-R3 | Unit tests for `BaseUrl` class |
 | WP10-R4 | Unit tests for `PathFormatter` class |
 | WP10-R5 | Unit tests for `Authenticator`, `BasicAuthenticator`, `TokenBearerAuthenticator` |
