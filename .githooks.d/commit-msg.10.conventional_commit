@@ -1,0 +1,30 @@
+#!/bin/sh
+################################################################################
+# Title: commit-msg hook
+# Description: Validates that the commit message follows the conventional
+# commit format. This ensures compatibility with release-please
+# for automated releases and semantic versioning.
+#
+# Author: Aydin Abdi
+#
+# Usage:
+#   Conventional commit message format:
+#       '<type>(<optional scope>): <description>'
+#
+#   Allowed types: feat, fix, perf, docs, chore, ci, test, refactor
+#
+# >>>Commit message examples<<<
+# feat: add new performance test scenario
+# fix(http-client): correct timeout handling
+# docs: update API documentation
+# chore!: drop support for Node 18
+################################################################################
+set -e
+
+# Set the project githooks directory, otherwise use the default value
+: "${MAMBA_GITHOOK_PROJECT_GITHOOKS_DIR:=".githooks.d"}"
+
+# Run conventional-pre-commit hook for commit message validation
+printf "Validating conventional commit message format\n"
+pre-commit run --hook-stage commit-msg --commit-msg-filename "$1" \
+  -c "${MAMBA_GITHOOK_PROJECT_GITHOOKS_DIR}/.pre-commit-config.yaml"
