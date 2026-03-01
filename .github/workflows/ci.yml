@@ -42,6 +42,7 @@ jobs:
       - uses: AbsaOSS/k3d-action@v2
         with:
           cluster-name: k6
+          k3d-version: v5.8.3
       - name: Run integration tests on Kubernetes
         env:
           KUBECTL_CONTEXT: k3d-k6
