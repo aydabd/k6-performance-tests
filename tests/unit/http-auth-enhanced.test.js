@@ -108,6 +108,36 @@ describe('Authenticator - JWT', () => {
             });
             expect(auth.getJwtAuth()).toBe('');
         });
+
+        it('returns empty string when response body is not valid JSON', () => {
+            http.post.mockReturnValue({ status: 200, body: '<html>Error</html>' });
+            const auth = new Authenticator({
+                loginUrl: 'https://api.example.com/login',
+                username: 'user',
+                password: 'pass',
+            });
+            expect(auth.getJwtAuth()).toBe('');
+        });
+
+        it('returns empty string when response body is null JSON', () => {
+            http.post.mockReturnValue({ status: 200, body: 'null' });
+            const auth = new Authenticator({
+                loginUrl: 'https://api.example.com/login',
+                username: 'user',
+                password: 'pass',
+            });
+            expect(auth.getJwtAuth()).toBe('');
+        });
+
+        it('returns empty string when token field is missing from response', () => {
+            http.post.mockReturnValue({ status: 200, body: '{"other":"value"}' });
+            const auth = new Authenticator({
+                loginUrl: 'https://api.example.com/login',
+                username: 'user',
+                password: 'pass',
+            });
+            expect(auth.getJwtAuth()).toBe('');
+        });
     });
 });
 
@@ -205,6 +235,26 @@ describe('Authenticator - OAuth2', () => {
 
         it('returns empty string when token request fails', () => {
             http.post.mockReturnValue({ status: 500, body: '{}' });
+            const auth = new Authenticator({
+                tokenUrl: 'https://auth.example.com/token',
+                clientId: 'my-client',
+                clientSecret: 'my-secret',
+            });
+            expect(auth.getOAuth2Auth()).toBe('');
+        });
+
+        it('returns empty string when response body is not valid JSON', () => {
+            http.post.mockReturnValue({ status: 200, body: 'Internal Server Error' });
+            const auth = new Authenticator({
+                tokenUrl: 'https://auth.example.com/token',
+                clientId: 'my-client',
+                clientSecret: 'my-secret',
+            });
+            expect(auth.getOAuth2Auth()).toBe('');
+        });
+
+        it('returns empty string when response body is null JSON', () => {
+            http.post.mockReturnValue({ status: 200, body: 'null' });
             const auth = new Authenticator({
                 tokenUrl: 'https://auth.example.com/token',
                 clientId: 'my-client',

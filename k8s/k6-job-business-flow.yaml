@@ -24,7 +24,10 @@ spec:
             - name: K6_INFLUXDB_BUCKET
               value: "simple-k6-tests"
             - name: K6_INFLUXDB_TOKEN
-              value: "y3zTEWhDLPfa05-op-gKftVHhbEkmNL98uijqokTMr_JHdlK59PpitKl6QdXNF3YQVrLXdtTdjISNSqWtFwbFw=="
+              valueFrom:
+                secretKeyRef:
+                  name: k6-influxdb-token
+                  key: token
             - name: K6_INFLUXDB_ADDR
               value: "http://influxdb:8086"
             - name: K6_OTEL_EXPORTER_PROTOCOL

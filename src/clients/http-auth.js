@@ -129,8 +129,23 @@ class JwtAuthenticator extends IAuthenticator {
             console.debug(`JWT login failed with status ${response.status}`);
             return '';
         }
-        const body = JSON.parse(response.body);
-        return body[this.tokenField] || '';
+        let body;
+        try {
+            body = JSON.parse(response.body);
+        } catch (err) {
+            console.debug(`Failed to parse JWT login response: ${err && err.message ? err.message : String(err)}`);
+            return '';
+        }
+        if (!body || typeof body !== 'object') {
+            console.debug('JWT login response body is not a valid JSON object');
+            return '';
+        }
+        const token = body[this.tokenField];
+        if (!token) {
+            console.debug(`JWT token field "${this.tokenField}" missing or empty in response`);
+            return '';
+        }
+        return `${token}`;
     }
 }
 
@@ -218,7 +233,17 @@ class OAuth2ClientCredentials extends IAuthenticator {
             console.debug(`OAuth2 token request failed with status ${response.status}`);
             return '';
         }
-        const body = JSON.parse(response.body);
+        let body;
+        try {
+            body = JSON.parse(response.body);
+        } catch (err) {
+            console.debug(`Failed to parse OAuth2 token response: ${err && err.message ? err.message : String(err)}`);
+            return '';
+        }
+        if (!body || typeof body !== 'object') {
+            console.debug('OAuth2 token response body is not a valid JSON object');
+            return '';
+        }
         return body.access_token || '';
     }
 }

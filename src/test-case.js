@@ -41,11 +41,16 @@ class TestCase {
         this.id = descriptor.id || '';
         this.title = descriptor.title || '';
         this.description = descriptor.description || '';
-        this.prerequisites = descriptor.prerequisites || [];
-        this.steps = descriptor.steps || [];
-        this.expectedResults = descriptor.expectedResults || [];
-        this.tags = descriptor.tags || {};
+        this.prerequisites = [...(descriptor.prerequisites || [])];
+        this.steps = [...(descriptor.steps || [])];
+        this.expectedResults = [...(descriptor.expectedResults || [])];
+        this.tags = { ...(descriptor.tags || {}) };
         this.externalId = descriptor.externalId || '';
+        Object.freeze(this.prerequisites);
+        Object.freeze(this.steps);
+        Object.freeze(this.expectedResults);
+        Object.freeze(this.tags);
+        Object.freeze(this);
     }
 
     /**

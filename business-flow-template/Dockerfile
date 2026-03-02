@@ -87,6 +87,8 @@ ARG K6_OUT="xk6-influxdb=http://influxdb:8086" \
 
 # These are the same environment variables that are used in the official k6-output-influxdb image
 # see: https://grafana.com/docs/k6/latest/results-output/real-time/influxdb/#options
+# NOTE: K6_INFLUXDB_ADDR uses HTTP for Docker-internal communication.
+# For production, use HTTPS and set K6_INFLUXDB_INSECURE="false".
 ARG K6_INFLUXDB_ORGANIZATION="k6testorg" \
     K6_INFLUXDB_BUCKET="simple-k6-tests" \
     K6_INFLUXDB_ADDR="http://performance.k6.test/influxdb" \
@@ -148,10 +150,9 @@ ENV K6_INFLUXDB_ORGANIZATION="${K6_INFLUXDB_ORGANIZATION}" \
     K6_INFLUXDB_HTTP_PROXY="${K6_INFLUXDB_HTTP_PROXY}"
 
 ################################################################################################################
-# TODO: The influxdb token should be set as a secret and should be removed from the Dockerfile
-# This token is connecting influxdb datasource for Grafana.
-# The same token is used for grafana/datasources/datasource.yaml
-ENV K6_INFLUXDB_TOKEN=y3zTEWhDLPfa05-op-gKftVHhbEkmNL98uijqokTMr_JHdlK59PpitKl6QdXNF3YQVrLXdtTdjISNSqWtFwbFw==
+# The K6_INFLUXDB_TOKEN must be provided at runtime via Docker Compose environment variables
+# or a Kubernetes Secret. Do NOT bake tokens into the image.
+# The same token is used for grafana/datasources/datasource.yaml.
 ################################################################################################################
 
 # WORKDIR is the working directory for the k6 performance test

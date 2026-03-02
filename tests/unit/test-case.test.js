@@ -82,6 +82,30 @@ describe('TestCaseBuilder', () => {
             expect(tc2.steps).toEqual(['Step 2']);
         });
     });
+
+    describe('build - immutability clones input references', () => {
+        it('clones arrays so external mutation does not affect TestCase', () => {
+            const steps = ['Step 1', 'Step 2'];
+            const tc = validBuilder().steps(steps).build();
+            steps.push('Step 3');
+            expect(tc.steps).toEqual(['Step 1', 'Step 2']);
+        });
+
+        it('clones tags so external mutation does not affect TestCase', () => {
+            const tags = { env: 'staging' };
+            const tc = validBuilder().tags(tags).build();
+            tags.env = 'production';
+            tags.extra = 'value';
+            expect(tc.tags).toEqual({ env: 'staging' });
+        });
+
+        it('freezes the TestCase instance properties', () => {
+            const tc = validBuilder().steps(['Step 1']).build();
+            expect(() => { tc.steps.push('Step 2'); }).toThrow();
+            expect(() => { tc.tags.newKey = 'value'; }).toThrow();
+            expect(() => { tc.id = 'NEW-ID'; }).toThrow();
+        });
+    });
 });
 
 describe('TestCase', () => {
