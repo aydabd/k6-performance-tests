@@ -27,12 +27,14 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+      - name: Install pre-commit
+        run: pip install pre-commit -q
       - name: Check each commit passes lint and tests
         run: |
           BASE_SHA=${{ github.event.pull_request.base.sha }}
           HEAD_SHA=${{ github.event.pull_request.head.sha }}
           COMMITS=$(git rev-list --reverse "${BASE_SHA}..${HEAD_SHA}")
-          TOTAL=$(echo "$COMMITS" | wc -w)
+          TOTAL=$(echo "$COMMITS" | grep -c . || echo 0)
           echo "Checking $TOTAL commits for individual lint+test compliance..."
           FAILED=0
           for SHA in $COMMITS; do
@@ -42,7 +44,7 @@ jobs:
             echo "━━━ Commit $SHORT: $MSG ━━━"
             git checkout --quiet "$SHA"
             npm ci --silent 2>/dev/null
-            if npm test 2>/dev/null && pip install pre-commit -q && pre-commit run --all-files -c .githooks.d/.pre-commit-config.yaml 2>/dev/null; then
+            if npm test 2>/dev/null && pre-commit run --all-files -c .githooks.d/.pre-commit-config.yaml 2>/dev/null; then
               echo "✅ PASS: $SHORT"
             else
               echo "❌ FAIL: $SHORT — this PR must be squash-merged"
