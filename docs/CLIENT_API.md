@@ -151,16 +151,32 @@ const authenticator = new Authenticator('username', 'password');
         * [.getAuth()](#module_http-auth..BasicAuthenticator+getAuth) ⇒ <code>string</code>
     * [~TokenBearerAuthenticator](#module_http-auth..TokenBearerAuthenticator) ⇐ <code>IAuthenticator</code>
         * [new TokenBearerAuthenticator()](#new_module_http-auth..TokenBearerAuthenticator_new)
+    * [~JwtAuthenticator](#module_http-auth..JwtAuthenticator) ⇐ <code>IAuthenticator</code>
+        * [new JwtAuthenticator()](#new_module_http-auth..JwtAuthenticator_new)
+        * [.getAuth()](#module_http-auth..JwtAuthenticator+getAuth) ⇒ <code>string</code>
+    * [~ApiKeyAuthenticator](#module_http-auth..ApiKeyAuthenticator) ⇐ <code>IAuthenticator</code>
+        * [new ApiKeyAuthenticator()](#new_module_http-auth..ApiKeyAuthenticator_new)
+        * [.getAuth()](#module_http-auth..ApiKeyAuthenticator+getAuth) ⇒ <code>string</code>
+        * [.getHeaderName()](#module_http-auth..ApiKeyAuthenticator+getHeaderName) ⇒ <code>string</code>
+    * [~OAuth2ClientCredentials](#module_http-auth..OAuth2ClientCredentials) ⇐ <code>IAuthenticator</code>
+        * [new OAuth2ClientCredentials()](#new_module_http-auth..OAuth2ClientCredentials_new)
+        * [.getAuth()](#module_http-auth..OAuth2ClientCredentials+getAuth) ⇒ <code>string</code>
     * [~Authenticator](#module_http-auth..Authenticator)
         * [new Authenticator()](#new_module_http-auth..Authenticator_new)
         * [new Authenticator(options)](#new_module_http-auth..Authenticator_new)
         * [.getBasicAuth()](#module_http-auth..Authenticator+getBasicAuth) ⇒ <code>string</code>
         * [.getTokenBearerAuth()](#module_http-auth..Authenticator+getTokenBearerAuth) ⇒ <code>string</code>
+        * [.getJwtAuth([loginUrl])](#module_http-auth..Authenticator+getJwtAuth) ⇒ <code>string</code>
+        * [.getApiKeyAuth()](#module_http-auth..Authenticator+getApiKeyAuth) ⇒ <code>string</code>
+        * [.getOAuth2Auth()](#module_http-auth..Authenticator+getOAuth2Auth) ⇒ <code>string</code>
     * [~Authenticator](#module_http-auth..Authenticator)
         * [new Authenticator()](#new_module_http-auth..Authenticator_new)
         * [new Authenticator(options)](#new_module_http-auth..Authenticator_new)
         * [.getBasicAuth()](#module_http-auth..Authenticator+getBasicAuth) ⇒ <code>string</code>
         * [.getTokenBearerAuth()](#module_http-auth..Authenticator+getTokenBearerAuth) ⇒ <code>string</code>
+        * [.getJwtAuth([loginUrl])](#module_http-auth..Authenticator+getJwtAuth) ⇒ <code>string</code>
+        * [.getApiKeyAuth()](#module_http-auth..Authenticator+getApiKeyAuth) ⇒ <code>string</code>
+        * [.getOAuth2Auth()](#module_http-auth..Authenticator+getOAuth2Auth) ⇒ <code>string</code>
 
 <a name="module_http-auth..IAuthenticator"></a>
 
@@ -222,6 +238,96 @@ Class to handle token bearer authentication.
 const tokenBearerAuthenticator = new TokenBearerAuthenticator({ token: 'token' });
 tokenBearerAuthenticator.getAuth();
 ```
+<a name="module_http-auth..JwtAuthenticator"></a>
+
+### http-auth~JwtAuthenticator ⇐ <code>IAuthenticator</code>
+Class to handle JWT authentication.
+
+**Kind**: inner class of [<code>http-auth</code>](#module_http-auth)  
+**Extends**: <code>IAuthenticator</code>  
+
+* [~JwtAuthenticator](#module_http-auth..JwtAuthenticator) ⇐ <code>IAuthenticator</code>
+    * [new JwtAuthenticator()](#new_module_http-auth..JwtAuthenticator_new)
+    * [.getAuth()](#module_http-auth..JwtAuthenticator+getAuth) ⇒ <code>string</code>
+
+<a name="new_module_http-auth..JwtAuthenticator_new"></a>
+
+#### new JwtAuthenticator()
+**Example**  
+```javascript
+const jwtAuth = new JwtAuthenticator({ loginUrl: 'https://api.example.com/login', username: 'user', password: 'pass' });
+jwtAuth.getAuth();
+```
+<a name="module_http-auth..JwtAuthenticator+getAuth"></a>
+
+#### jwtAuthenticator.getAuth() ⇒ <code>string</code>
+Calls the login endpoint and returns the JWT token.
+
+**Kind**: instance method of [<code>JwtAuthenticator</code>](#module_http-auth..JwtAuthenticator)  
+**Returns**: <code>string</code> - - The JWT token.  
+<a name="module_http-auth..ApiKeyAuthenticator"></a>
+
+### http-auth~ApiKeyAuthenticator ⇐ <code>IAuthenticator</code>
+Class to handle API key authentication.
+
+**Kind**: inner class of [<code>http-auth</code>](#module_http-auth)  
+**Extends**: <code>IAuthenticator</code>  
+
+* [~ApiKeyAuthenticator](#module_http-auth..ApiKeyAuthenticator) ⇐ <code>IAuthenticator</code>
+    * [new ApiKeyAuthenticator()](#new_module_http-auth..ApiKeyAuthenticator_new)
+    * [.getAuth()](#module_http-auth..ApiKeyAuthenticator+getAuth) ⇒ <code>string</code>
+    * [.getHeaderName()](#module_http-auth..ApiKeyAuthenticator+getHeaderName) ⇒ <code>string</code>
+
+<a name="new_module_http-auth..ApiKeyAuthenticator_new"></a>
+
+#### new ApiKeyAuthenticator()
+**Example**  
+```javascript
+const apiKeyAuth = new ApiKeyAuthenticator({ apiKey: 'my-api-key' });
+apiKeyAuth.getAuth();
+apiKeyAuth.getHeaderName();
+```
+<a name="module_http-auth..ApiKeyAuthenticator+getAuth"></a>
+
+#### apiKeyAuthenticator.getAuth() ⇒ <code>string</code>
+Returns the API key value.
+
+**Kind**: instance method of [<code>ApiKeyAuthenticator</code>](#module_http-auth..ApiKeyAuthenticator)  
+**Returns**: <code>string</code> - - The API key.  
+<a name="module_http-auth..ApiKeyAuthenticator+getHeaderName"></a>
+
+#### apiKeyAuthenticator.getHeaderName() ⇒ <code>string</code>
+Returns the header name for the API key.
+
+**Kind**: instance method of [<code>ApiKeyAuthenticator</code>](#module_http-auth..ApiKeyAuthenticator)  
+**Returns**: <code>string</code> - - The header name.  
+<a name="module_http-auth..OAuth2ClientCredentials"></a>
+
+### http-auth~OAuth2ClientCredentials ⇐ <code>IAuthenticator</code>
+Class to handle OAuth2 client credentials authentication.
+
+**Kind**: inner class of [<code>http-auth</code>](#module_http-auth)  
+**Extends**: <code>IAuthenticator</code>  
+
+* [~OAuth2ClientCredentials](#module_http-auth..OAuth2ClientCredentials) ⇐ <code>IAuthenticator</code>
+    * [new OAuth2ClientCredentials()](#new_module_http-auth..OAuth2ClientCredentials_new)
+    * [.getAuth()](#module_http-auth..OAuth2ClientCredentials+getAuth) ⇒ <code>string</code>
+
+<a name="new_module_http-auth..OAuth2ClientCredentials_new"></a>
+
+#### new OAuth2ClientCredentials()
+**Example**  
+```javascript
+const oauth2Auth = new OAuth2ClientCredentials({ tokenUrl: 'https://auth.example.com/token', clientId: 'id', clientSecret: 'secret' });
+oauth2Auth.getAuth();
+```
+<a name="module_http-auth..OAuth2ClientCredentials+getAuth"></a>
+
+#### oAuth2ClientCredentials.getAuth() ⇒ <code>string</code>
+Calls the token endpoint and returns the access token.
+
+**Kind**: instance method of [<code>OAuth2ClientCredentials</code>](#module_http-auth..OAuth2ClientCredentials)  
+**Returns**: <code>string</code> - - The access token.  
 <a name="module_http-auth..Authenticator"></a>
 
 ### http-auth~Authenticator
@@ -232,6 +338,9 @@ tokenBearerAuthenticator.getAuth();
     * [new Authenticator(options)](#new_module_http-auth..Authenticator_new)
     * [.getBasicAuth()](#module_http-auth..Authenticator+getBasicAuth) ⇒ <code>string</code>
     * [.getTokenBearerAuth()](#module_http-auth..Authenticator+getTokenBearerAuth) ⇒ <code>string</code>
+    * [.getJwtAuth([loginUrl])](#module_http-auth..Authenticator+getJwtAuth) ⇒ <code>string</code>
+    * [.getApiKeyAuth()](#module_http-auth..Authenticator+getApiKeyAuth) ⇒ <code>string</code>
+    * [.getOAuth2Auth()](#module_http-auth..Authenticator+getOAuth2Auth) ⇒ <code>string</code>
 
 <a name="new_module_http-auth..Authenticator_new"></a>
 
@@ -271,6 +380,32 @@ Returns the token bearer authentication.
 
 **Kind**: instance method of [<code>Authenticator</code>](#module_http-auth..Authenticator)  
 **Returns**: <code>string</code> - - The token bearer authentication.  
+<a name="module_http-auth..Authenticator+getJwtAuth"></a>
+
+#### authenticator.getJwtAuth([loginUrl]) ⇒ <code>string</code>
+Returns the JWT authentication.
+
+**Kind**: instance method of [<code>Authenticator</code>](#module_http-auth..Authenticator)  
+**Returns**: <code>string</code> - - The JWT token.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [loginUrl] | <code>string</code> | Optional login URL override. |
+
+<a name="module_http-auth..Authenticator+getApiKeyAuth"></a>
+
+#### authenticator.getApiKeyAuth() ⇒ <code>string</code>
+Returns the API key authentication.
+
+**Kind**: instance method of [<code>Authenticator</code>](#module_http-auth..Authenticator)  
+**Returns**: <code>string</code> - - The API key.  
+<a name="module_http-auth..Authenticator+getOAuth2Auth"></a>
+
+#### authenticator.getOAuth2Auth() ⇒ <code>string</code>
+Returns the OAuth2 client credentials authentication.
+
+**Kind**: instance method of [<code>Authenticator</code>](#module_http-auth..Authenticator)  
+**Returns**: <code>string</code> - - The access token.  
 <a name="module_http-auth..Authenticator"></a>
 
 ### http-auth~Authenticator
@@ -281,6 +416,9 @@ Returns the token bearer authentication.
     * [new Authenticator(options)](#new_module_http-auth..Authenticator_new)
     * [.getBasicAuth()](#module_http-auth..Authenticator+getBasicAuth) ⇒ <code>string</code>
     * [.getTokenBearerAuth()](#module_http-auth..Authenticator+getTokenBearerAuth) ⇒ <code>string</code>
+    * [.getJwtAuth([loginUrl])](#module_http-auth..Authenticator+getJwtAuth) ⇒ <code>string</code>
+    * [.getApiKeyAuth()](#module_http-auth..Authenticator+getApiKeyAuth) ⇒ <code>string</code>
+    * [.getOAuth2Auth()](#module_http-auth..Authenticator+getOAuth2Auth) ⇒ <code>string</code>
 
 <a name="new_module_http-auth..Authenticator_new"></a>
 
@@ -320,6 +458,32 @@ Returns the token bearer authentication.
 
 **Kind**: instance method of [<code>Authenticator</code>](#module_http-auth..Authenticator)  
 **Returns**: <code>string</code> - - The token bearer authentication.  
+<a name="module_http-auth..Authenticator+getJwtAuth"></a>
+
+#### authenticator.getJwtAuth([loginUrl]) ⇒ <code>string</code>
+Returns the JWT authentication.
+
+**Kind**: instance method of [<code>Authenticator</code>](#module_http-auth..Authenticator)  
+**Returns**: <code>string</code> - - The JWT token.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [loginUrl] | <code>string</code> | Optional login URL override. |
+
+<a name="module_http-auth..Authenticator+getApiKeyAuth"></a>
+
+#### authenticator.getApiKeyAuth() ⇒ <code>string</code>
+Returns the API key authentication.
+
+**Kind**: instance method of [<code>Authenticator</code>](#module_http-auth..Authenticator)  
+**Returns**: <code>string</code> - - The API key.  
+<a name="module_http-auth..Authenticator+getOAuth2Auth"></a>
+
+#### authenticator.getOAuth2Auth() ⇒ <code>string</code>
+Returns the OAuth2 client credentials authentication.
+
+**Kind**: instance method of [<code>Authenticator</code>](#module_http-auth..Authenticator)  
+**Returns**: <code>string</code> - - The access token.  
 <a name="module_http-client"></a>
 
 ## http-client
