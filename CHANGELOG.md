@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.1](https://github.com/aydabd/k6-performance-tests/compare/v2.4.0...v2.4.1) (2026-03-03)
+
+
+### Documentation
+
+* add bisect-safe commit policy with CI enforcement ([#84](https://github.com/aydabd/k6-performance-tests/issues/84)) ([efc335d](https://github.com/aydabd/k6-performance-tests/commit/efc335daf59397cc25933cb95991e2387093569b))
+
 ## [2.4.0](https://github.com/aydabd/k6-performance-tests/compare/v2.3.2...v2.4.0) (2026-03-01)
 
 
