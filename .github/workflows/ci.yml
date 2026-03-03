@@ -10,6 +10,58 @@ permissions:
   contents: read
 
 jobs:
+  commit-lint-test:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Cache node modules
+        uses: actions/cache@v5
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Install pre-commit
+        run: pip install pre-commit -q
+      - name: Check each commit passes lint and tests
+        run: |
+          BASE_SHA=${{ github.event.pull_request.base.sha }}
+          HEAD_SHA=${{ github.event.pull_request.head.sha }}
+          COMMITS=$(git rev-list --reverse "${BASE_SHA}..${HEAD_SHA}")
+          TOTAL=$(echo "$COMMITS" | grep -c . || echo 0)
+          echo "Checking $TOTAL commits for individual lint+test compliance..."
+          FAILED=0
+          for SHA in $COMMITS; do
+            SHORT=$(git rev-parse --short "$SHA")
+            MSG=$(git log -1 --format='%s' "$SHA")
+            echo ""
+            echo "━━━ Commit $SHORT: $MSG ━━━"
+            git checkout -- . 2>/dev/null || true
+            git checkout --quiet "$SHA"
+            npm ci --silent 2>/dev/null
+            if npm test 2>/dev/null && pre-commit run --all-files -c .githooks.d/.pre-commit-config.yaml 2>/dev/null; then
+              echo "✅ PASS: $SHORT"
+            else
+              echo "❌ FAIL: $SHORT — this PR must be squash-merged"
+              FAILED=$((FAILED + 1))
+            fi
+          done
+          echo ""
+          if [ "$FAILED" -gt 0 ]; then
+            echo "⚠️  $FAILED of $TOTAL commits failed individual validation."
+            echo "This PR must use SQUASH AND MERGE."
+            echo "See docs/GIT_MERGE_STRATEGY.md for details."
+            exit 1
+          else
+            echo "✅ All $TOTAL commits pass individually — safe to rebase and merge."
+          fi
+
   lint-docs:
     runs-on: ubuntu-latest
     steps:

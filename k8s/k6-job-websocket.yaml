@@ -17,6 +17,12 @@ spec:
               value: "http://influxdb:8086"
             - name: API_SERVER
               value: "websocket-echo"
+            - name: K6_OTEL_EXPORTER_PROTOCOL
+              value: "grpc"
+            - name: K6_OTEL_GRPC_EXPORTER_ENDPOINT
+              value: "otel-collector:4317"
+            - name: K6_OTEL_GRPC_EXPORTER_INSECURE
+              value: "true"
           volumeMounts:
             - name: logs
               mountPath: /performance-k6/test-logs

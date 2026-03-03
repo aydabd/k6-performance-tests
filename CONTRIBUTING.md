@@ -26,3 +26,31 @@ After installation, you need to configure `mamba-githook` to use the project-spe
    Try to make a commit with code that does not meet the lint rules. `mamba-githook` should automatically cancel the commit and show lint errors.
 
 By following these steps, you have configured your development environment to automatically run lint tests at every commit, helping to maintain code quality and simplify collaboration in the project.
+
+## Commit Quality Rules
+
+Every commit on `main` must pass all linting and tests independently. This is
+required so that `git bisect` can reliably find the exact commit that introduced
+a regression.
+
+### What this means for your PR
+
+1. **Each commit must be self-contained** — include the feature code AND its
+   tests in the same commit.
+2. **Each commit must pass** `npm test` and
+   `pre-commit run --all-files -c .githooks.d/.pre-commit-config.yaml`.
+3. **CI enforces this** — the `commit-lint-test` job checks every commit in
+   your PR individually.
+
+### Merge strategy
+
+| Can every commit pass CI? | Merge strategy       |
+| ------------------------- | -------------------- |
+| **Yes**                   | Rebase and Merge ✓   |
+| **No**                    | Squash and Merge ✓   |
+
+If your PR has fix-up commits, work-in-progress commits, or commits that depend
+on later commits to pass tests, it **must** be squash-merged.
+
+For the full rationale including `git bisect` examples, see
+[docs/GIT_MERGE_STRATEGY.md](docs/GIT_MERGE_STRATEGY.md).

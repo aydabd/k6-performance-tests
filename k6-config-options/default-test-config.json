@@ -1,4 +1,7 @@
 {
+  "tags": {
+    "testRunId": "default"
+  },
   "hosts": {
       "performance.k6.test": "127.0.0.1"
     },

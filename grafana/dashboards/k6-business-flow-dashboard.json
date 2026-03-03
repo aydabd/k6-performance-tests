@@ -1,0 +1,134 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "pointSize": 5
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "title": "Response Time by Business Flow",
+      "type": "timeseries",
+      "targets": [
+        {
+          "query": "from(bucket: \"simple-k6-tests\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"http_req_duration\" and r.testRunId == \"${testRunId}\") |> group(columns: [\"businessFlow\"])"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 2,
+      "title": "Iteration Rate by Business Flow",
+      "type": "timeseries",
+      "targets": [
+        {
+          "query": "from(bucket: \"simple-k6-tests\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"iterations\" and r.testRunId == \"${testRunId}\") |> group(columns: [\"businessFlow\"])"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 3,
+      "title": "Error Rate by Business Flow",
+      "type": "timeseries",
+      "targets": [
+        {
+          "query": "from(bucket: \"simple-k6-tests\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"http_req_failed\" and r.testRunId == \"${testRunId}\") |> group(columns: [\"businessFlow\"])"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": [
+    "k6",
+    "performance",
+    "business-flow"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "default",
+          "value": "default"
+        },
+        "definition": "from(bucket: \"simple-k6-tests\") |> range(start: -7d) |> keep(columns: [\"testRunId\"]) |> distinct(column: \"testRunId\")",
+        "name": "testRunId",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb"
+        },
+        "query": "from(bucket: \"simple-k6-tests\") |> range(start: -7d) |> keep(columns: [\"testRunId\"]) |> distinct(column: \"testRunId\")",
+        "refresh": 1,
+        "sort": 1
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "title": "k6 Business Flow Dashboard",
+  "uid": "k6-business-flow"
+}

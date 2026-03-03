@@ -70,6 +70,11 @@ services:
       context: .
       dockerfile: simple-k6-test-template/Dockerfile
     image: simple-k6-test-template:latest
+    environment:
+      - TEST_RUN_ID=${TEST_RUN_ID:-default}
+      - K6_OTEL_EXPORTER_PROTOCOL=${K6_OTEL_EXPORTER_PROTOCOL:-grpc}
+      - K6_OTEL_GRPC_EXPORTER_ENDPOINT=${K6_OTEL_GRPC_EXPORTER_ENDPOINT:-otel-collector:4317}
+      - K6_OTEL_GRPC_EXPORTER_INSECURE=${K6_OTEL_GRPC_EXPORTER_INSECURE:-true}
     volumes:
       - ./simple-k6-test-template/test-logs:/performance-k6/test-logs
     networks:
@@ -95,8 +100,54 @@ services:
       - websocket-echo
     environment:
       - API_SERVER=websocket-echo
+      - TEST_RUN_ID=${TEST_RUN_ID:-default}
+      - K6_OTEL_EXPORTER_PROTOCOL=${K6_OTEL_EXPORTER_PROTOCOL:-grpc}
+      - K6_OTEL_GRPC_EXPORTER_ENDPOINT=${K6_OTEL_GRPC_EXPORTER_ENDPOINT:-otel-collector:4317}
+      - K6_OTEL_GRPC_EXPORTER_INSECURE=${K6_OTEL_GRPC_EXPORTER_INSECURE:-true}
     volumes:
       - ./simple-k6-websocket-test/test-logs:/performance-k6/test-logs
+    networks:
+      - k6-webnet
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    networks:
+      - k6-webnet
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./otel/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    depends_on:
+      - grafana-tempo
+
+  grafana-tempo:
+    image: grafana/tempo:latest
+    networks:
+      - k6-webnet
+    ports:
+      - "3200:3200"
+    volumes:
+      - ./grafana/tempo/tempo-config.yaml:/etc/tempo/config.yaml:ro
+    command: ["-config.file=/etc/tempo/config.yaml"]
+
+  business-flow-template:
+    profiles:
+      - business-flows
+      - flow-default
+    build:
+      context: .
+      dockerfile: business-flow-template/Dockerfile
+    image: business-flow-template:latest
+    depends_on:
+      - k6-template-influxdb-base
+      - influxdb
+      - nginx
+    environment:
+      - BUSINESS_FLOW_NAME=${BUSINESS_FLOW_NAME:-default-flow}
+      - TEST_RUN_ID=${TEST_RUN_ID:-default}
+    volumes:
+      - ./business-flow-template/test-logs:/performance-k6/test-logs
     networks:
       - k6-webnet
 

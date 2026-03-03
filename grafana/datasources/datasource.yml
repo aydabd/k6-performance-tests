@@ -13,3 +13,10 @@ datasources:
       organization: k6testorg
       defaultBucket: simple-k6-tests
       maxSeries: 10000
+  - name: Tempo
+    type: tempo
+    url: http://grafana-tempo:3200
+    isDefault: false
+    jsonData:
+      nodeGraph:
+        enabled: true
