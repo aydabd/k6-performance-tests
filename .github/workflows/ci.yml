@@ -42,6 +42,7 @@ jobs:
             MSG=$(git log -1 --format='%s' "$SHA")
             echo ""
             echo "━━━ Commit $SHORT: $MSG ━━━"
+            git checkout -- . 2>/dev/null || true
             git checkout --quiet "$SHA"
             npm ci --silent 2>/dev/null
             if npm test 2>/dev/null && pre-commit run --all-files -c .githooks.d/.pre-commit-config.yaml 2>/dev/null; then
