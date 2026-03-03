@@ -25,6 +25,9 @@ This repository contains **k6 performance tests** for non-functional testing
 3. **Testability** — every module must be independently testable.
 4. **Long-term** — code must be maintainable for years.
 5. **Type safety** — use JSDoc type annotations for k6 JavaScript code.
+6. **Bisect-safe commits** — every commit must pass lint and tests independently
+   so `git bisect` works. Include tests in the same commit as the feature code.
+   See [docs/GIT_MERGE_STRATEGY.md](docs/GIT_MERGE_STRATEGY.md).
 
 ## Code Style
 

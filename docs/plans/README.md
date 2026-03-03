@@ -14,23 +14,7 @@
 
 ## Active Plans
 
-<!-- markdownlint-disable MD013 -->
-
-| Plan | Title | Phase | Soft Dependencies |
-| ---- | ----- | ----- | ----------------- |
-| [WP-01](WP-01-opentelemetry-metrics.md) | OpenTelemetry Metrics Output | 2 | — |
-| [WP-02](WP-02-enhanced-authentication.md) | Enhanced Authentication & Lifecycle Hooks | 2 | WP-10 |
-| [WP-03](WP-03-test-case-descriptors.md) | Structured Test Case Descriptors | 2 | WP-10 |
-| [WP-04](WP-04-scenario-setup-teardown.md) | Scenario-Level Setup/Teardown | 3 | WP-10 |
-| [WP-05](WP-05-grafana-dashboard-refresh.md) | Grafana Dashboard Refresh | 2 | — |
-| [WP-06](WP-06-centralized-reporting.md) | Centralized Reporting & Aggregation | 3 | WP-03 |
-| [WP-07](WP-07-business-flow-containers.md) | Business-Flow Isolated Containers | 3 | WP-04 |
-| [WP-08](WP-08-test-management-integration.md) | Test Management Integration (Xray / TestRail) | 4 | WP-03, WP-06 |
-| [WP-09](WP-09-k6-runtime-upgrades.md) | K6 Runtime & Extension Upgrades | 1 | — |
-| [WP-10](WP-10-unit-test-infrastructure.md) | Unit Test Infrastructure | 1 | — |
-| [WP-11](WP-11-k6-api-migration.md) | K6 API Migration (Experimental → Stable) | 1 | — |
-
-<!-- markdownlint-enable MD013 -->
+No active plans — all work packages have been completed.
 
 ## Recommended Phase Order
 
@@ -43,4 +27,20 @@
 
 ## Completed Plans
 
-*None yet.*
+<!-- markdownlint-disable MD013 -->
+
+| Plan | Title | Phase | PR |
+| ---- | ----- | ----- | -- |
+| WP-10 | Unit Test Infrastructure | 1 | v2.4.0 |
+| WP-09 | K6 Runtime & Extension Upgrades | 1 | v2.4.0 |
+| WP-11 | K6 API Migration (Experimental → Stable) | 1 | v2.4.0 |
+| WP-01 | OpenTelemetry Metrics Output | 2 | PR #84 |
+| WP-02 | Enhanced Authentication & Lifecycle Hooks | 2 | PR #84 |
+| WP-03 | Structured Test Case Descriptors | 2 | PR #84 |
+| WP-05 | Grafana Dashboard Refresh | 2 | PR #84 |
+| WP-04 | Scenario-Level Setup/Teardown | 3 | PR #84 |
+| WP-06 | Centralized Reporting & Aggregation | 3 | PR #84 |
+| WP-07 | Business-Flow Isolated Containers | 3 | PR #84 |
+| WP-08 | Test Management Integration (Xray / TestRail) | 4 | PR #84 |
+
+<!-- markdownlint-enable MD013 -->

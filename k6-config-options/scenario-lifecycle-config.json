@@ -1,0 +1,26 @@
+{
+  "tags": {
+    "testRunId": "default"
+  },
+  "thresholds": {
+    "http_req_failed": [{ "threshold": "rate<0.01", "abortOnFail": false }]
+  },
+  "scenarios": {
+    "login-flow": {
+      "executor": "per-vu-iterations",
+      "iterations": 1,
+      "vus": 1,
+      "maxDuration": "30s",
+      "exec": "loginFlow",
+      "tags": { "testType": "business-flow", "businessFlow": "login" }
+    },
+    "browse-flow": {
+      "executor": "per-vu-iterations",
+      "iterations": 1,
+      "vus": 1,
+      "maxDuration": "30s",
+      "exec": "browseFlow",
+      "tags": { "testType": "business-flow", "businessFlow": "browse" }
+    }
+  }
+}
