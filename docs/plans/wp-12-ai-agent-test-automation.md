@@ -43,11 +43,11 @@ Eight agents, each with a single responsibility:
 | # | Agent | Responsibility | MCP Connections |
 |---|-------|---------------|-----------------|
 | 1 | **Orchestrator** | Coordinates all agents, maintains a Definition of Done checklist, retries failed steps with corrected prompts | All other agents |
-| 2 | **API Analyser** | Discovers endpoints, schemas, and auth requirements from Swagger / OpenAPI specs | OpenAPI MCP server |
+| 2 | **API Analyzer** | Discovers endpoints, schemas, and auth requirements from Swagger / OpenAPI specs | OpenAPI MCP server |
 | 3 | **Test Planner** | Converts user stories + API analysis into test case descriptors (markdown with requirements traceability) | — |
 | 4 | **Test Implementer** | Generates k6 JavaScript test scripts from test case descriptors using `src/` shared libraries | — |
 | 5 | **Test Runner** | Builds the container image, executes the k6 run, collects exit code and artefacts | Docker / k8s API |
-| 6 | **Results Analyser** | Parses k6 JSON/CSV output, evaluates thresholds, produces a pass/fail summary | InfluxDB MCP server |
+| 6 | **Results Analyzer** | Parses k6 JSON/CSV output, evaluates thresholds, produces a pass/fail summary | InfluxDB MCP server |
 | 7 | **Database Verifier** | Queries the service's own database (Postgres, MongoDB, etc.) to confirm that API side-effects match the user story | Database MCP servers |
 | 8 | **Observability Reviewer** | Pulls OpenTelemetry metrics and Elasticsearch logs, flags anomalies (error spikes, latency regressions) | OTel Collector, Elasticsearch MCP servers |
 
@@ -70,7 +70,7 @@ flowchart TD
     end
 
     subgraph Analysis
-        AA[API Analyser Agent]
+        AA[API Analyzer Agent]
     end
 
     subgraph Planning
@@ -89,7 +89,7 @@ flowchart TD
     end
 
     subgraph Validation
-        RA[Results Analyser Agent]
+        RA[Results Analyzer Agent]
         DV[Database Verifier Agent]
         OR[Observability Reviewer Agent]
     end
@@ -164,7 +164,7 @@ agents/
 │   ├── index.js            # Entry point
 │   ├── checklist.js         # Definition of Done state machine
 │   └── agent-dispatcher.js  # Sends prompts to other agents
-├── api-analyser/
+├── api-analyzer/
 │   ├── package.json
 │   ├── index.js
 │   └── openapi-parser.js    # Swagger / OpenAPI v3 parsing
@@ -180,7 +180,7 @@ agents/
 │   ├── package.json
 │   ├── index.js
 │   └── container-builder.js # Docker / k8s job management
-├── results-analyser/
+├── results-analyzer/
 │   ├── package.json
 │   ├── index.js
 │   └── threshold-evaluator.js
@@ -191,7 +191,7 @@ agents/
 └── observability-reviewer/
     ├── package.json
     ├── index.js
-    └── log-analyser.js       # Elasticsearch & OTel queries
+    └── log-analyzer.js       # Elasticsearch & OTel queries
 ```
 
 ## 6  MCP Integration
@@ -208,7 +208,7 @@ flowchart LR
         MCP_ES[Elasticsearch<br/>MCP Server]
     end
 
-    AA[API Analyser] -->|read spec| MCP_OA
+    AA[API Analyzer] -->|read spec| MCP_OA
     DV[Database Verifier] -->|query| MCP_DB
     OR_OTEL[Observability<br/>Reviewer] -->|metrics| MCP_OTEL
     OR_ES[Observability<br/>Reviewer] -->|logs| MCP_ES
@@ -233,11 +233,11 @@ distributed deployment).
 ```mermaid
 sequenceDiagram
     participant O as Orchestrator
-    participant AA as API Analyser
+    participant AA as API Analyzer
     participant TP as Test Planner
     participant TI as Test Implementer
     participant TR as Test Runner
-    participant RA as Results Analyser
+    participant RA as Results Analyzer
 
     O->>AA: analyse(openapiUrl)
     AA-->>O: endpointMap
@@ -259,11 +259,11 @@ sequenceDiagram
 │  Orchestration Container                            │
 │                                                     │
 │  ┌───────────┐  ┌────────────┐  ┌───────────────┐  │
-│  │Orchestrator│  │API Analyser│  │ Test Planner  │  │
+│  │Orchestrator│  │API Analyzer│  │ Test Planner  │  │
 │  └───────────┘  └────────────┘  └───────────────┘  │
 │  ┌───────────────┐  ┌───────────┐                   │
 │  │Test Implementer│  │Results    │                   │
-│  │               │  │Analyser   │                   │
+│  │               │  │Analyzer   │                   │
 │  └───────────────┘  └───────────┘                   │
 │  ┌──────────────────┐  ┌──────────────────────┐     │
 │  │Database Verifier │  │Observability Reviewer │     │
@@ -332,11 +332,11 @@ responsible agent.
 | Phase | Work | Depends On |
 |-------|------|-----------|
 | A | Scaffold `agents/` package structure, message bus, Orchestrator skeleton | — |
-| B | API Analyser + OpenAPI MCP server | Phase A |
+| B | API Analyzer + OpenAPI MCP server | Phase A |
 | C | Test Planner (user story → test case descriptors) | Phase A |
 | D | Test Implementer (descriptor → k6 script generation) | Phases B, C |
 | E | Test Runner (container build + k6 execution) | Phase D |
-| F | Results Analyser (k6 output parsing + threshold evaluation) | Phase E |
+| F | Results Analyzer (k6 output parsing + threshold evaluation) | Phase E |
 | G | Database Verifier + Database MCP servers | Phase A |
 | H | Observability Reviewer + OTel / Elasticsearch MCP servers | Phase A |
 | I | End-to-end integration, final report generation | All above |
