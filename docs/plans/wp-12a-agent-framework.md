@@ -1,63 +1,67 @@
-# WP-12a — Agent Framework & SDK Foundation
+# WP-12a — Agent Framework & Orchestration
 
-> **Status**: Draft · **Parent**: [WP-12](wp-12-ai-agent-test-automation.md)
-> · **Depends on**: —
+> **Parent**: [WP-12](wp-12-ai-agent-test-automation.md) · **Depends on**: —
 
 ## Goal
 
-Establish the agent runtime, SDK choice, and inter-agent communication
-foundation that all other agents build on.
+Set up the agent runtime: pick an SDK, define the agent interface, and
+build the orchestrator that drives the pipeline.
 
-## Key Decisions to Make
+## SDK Evaluation
 
-1. **Go vs Node.js vs hybrid** — k6 is built on Go, so Go agents share the
-   same ecosystem and give better performance. Generated test scripts stay
-   in JavaScript/TypeScript for k6 compatibility.
-2. **Agent SDK** — evaluate options and pick the simplest one:
-   - Claude Agent SDK (Anthropic)
-   - GitHub Copilot Agent SDK
-   - LangChain Go (`langchaingo`)
-   - Custom MCP-native agents (thin wrapper around MCP tool protocol)
-3. **Inter-agent protocol** — start with direct Go function calls inside a
-   single binary. Design the interface so it can later be swapped to MCP
-   tool calls for distributed deployment.
+Pick whichever option is simplest and has the best MCP ecosystem.
+Criteria: MCP tool-calling support, community activity, ease of testing.
 
-## Scope
+| Option | Notes |
+|--------|-------|
+| Claude Agent SDK | Strong MCP support, TypeScript/Python |
+| Copilot Agent SDK | GitHub-integrated, TypeScript |
+| LangChain (JS/Go/Python) | Large community, many connectors |
+| Custom MCP-native | Thin wrapper, minimal dependencies |
 
-- [ ] Create `agents/` directory with `go.mod` and project layout.
-- [ ] Define the `Agent` interface in Go:
+The SDK choice also determines the agent language. If the best SDK is
+TypeScript, agents are TypeScript. If Go or Python has better MCP
+tooling, use that. **Generated k6 test scripts are always JS/TS.**
 
-```go
-type Agent interface {
-    Name() string
-    Execute(ctx context.Context, input Message) (Message, error)
-}
-```
-
-- [ ] Implement a simple in-process message bus (`internal/bus/`).
-- [ ] Create `internal/config/` for loading YAML/JSON configuration.
-- [ ] Add a `Makefile` or `taskfile.yml` for build, test, lint.
-- [ ] Write unit tests for the bus and config loader.
-- [ ] Document the chosen SDK and rationale in a short ADR.
-
-## Agent Interface Contract
+## Agent Interface
 
 Every agent follows the same contract:
 
 ```text
-Input:  Message { type, payload, metadata }
-Output: Message { type, payload, metadata }
-Error:  Returned explicitly, never panicked
+Input:  { type, payload, context }
+Output: { type, payload, status }
+Error:  Returned explicitly, never thrown silently
 ```
 
-Agents are stateless. State lives in the Orchestrator's checklist.
+Agents are stateless. The orchestrator owns all state.
+
+## Orchestrator
+
+- Maintains a **checklist** (state machine) tracking pipeline progress.
+- Dispatches to agents in order: analyze → plan → generate → execute → report.
+- Retries failed steps up to 3 times with corrected context.
+- Produces a final report when all checklist items pass.
+
+```text
+agent-orchestrator run \
+  --stories ./user-stories/ \
+  --openapi https://api.example.com/openapi.json \
+  --har ./recordings/session.har \
+  --config ./auth-instructions.yaml \
+  --output ./reports/
+```
+
+## Scope
+
+- [ ] Evaluate SDKs, pick one, write a short ADR.
+- [ ] Define the agent interface and message types.
+- [ ] Implement the orchestrator with checklist state machine.
+- [ ] Implement retry logic (simulated failure → re-dispatch).
+- [ ] Unit tests for orchestrator and state machine.
 
 ## Definition of Done
 
-- [ ] `agents/go.mod` compiles with `go build ./...`
-- [ ] `Agent` interface defined and documented.
-- [ ] In-process bus passes messages between two stub agents in a test.
-- [ ] Config loader reads a sample YAML file.
-- [ ] `go test ./...` passes.
-- [ ] `golangci-lint run` passes.
-- [ ] ADR written: which SDK was chosen and why.
+- [ ] SDK chosen with documented rationale.
+- [ ] Orchestrator dispatches to stub agents and tracks state.
+- [ ] Retry logic passes unit tests.
+- [ ] `lint` and `test` pass.

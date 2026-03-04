@@ -19,17 +19,11 @@
 | Plan | Title | Phase |
 | ---- | ----- | ----- |
 | [WP-12](wp-12-ai-agent-test-automation.md) | AI Agent-Driven Test Automation (Master Plan) | 5 |
-| [WP-12a](wp-12a-agent-framework.md) | Agent Framework & SDK Foundation | 5 |
-| [WP-12b](wp-12b-api-analyzer.md) | API Analyzer Agent | 5 |
-| [WP-12c](wp-12c-test-planner.md) | Test Planner Agent | 5 |
-| [WP-12d](wp-12d-test-implementer.md) | Test Implementer Agent (+ HAR recording) | 5 |
-| [WP-12e](wp-12e-test-runner.md) | Test Runner Agent | 5 |
-| [WP-12f](wp-12f-results-analyzer.md) | Results Analyzer Agent | 5 |
-| [WP-12g](wp-12g-database-verifier.md) | Database Verifier Agent | 5 |
-| [WP-12h](wp-12h-observability-reviewer.md) | Observability Reviewer Agent | 5 |
-| [WP-12i](wp-12i-orchestrator.md) | Orchestrator Agent | 5 |
-| [WP-12j](wp-12j-auth-instructions.md) | Auth Instructions Framework | 5 |
-| [WP-12k](wp-12k-integration-deployment.md) | End-to-End Integration & Deployment | 5 |
+| [WP-12a](wp-12a-agent-framework.md) | Agent Framework & Orchestration | 5 |
+| [WP-12b](wp-12b-api-test-planner.md) | API Analysis & Test Planning | 5 |
+| [WP-12c](wp-12c-test-generator.md) | Test Generation & HAR Conversion | 5 |
+| [WP-12d](wp-12d-execution-analysis.md) | Execution & Results Analysis | 5 |
+| [WP-12e](wp-12e-auth-and-integration.md) | Auth Instructions & Integration | 5 |
 
 <!-- markdownlint-enable MD013 -->
 
