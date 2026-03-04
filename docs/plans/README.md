@@ -14,7 +14,18 @@
 
 ## Active Plans
 
-No active plans — all work packages have been completed.
+<!-- markdownlint-disable MD013 -->
+
+| Plan | Title | Phase |
+| ---- | ----- | ----- |
+| [WP-12](wp-12-ai-agent-test-automation.md) | AI Agent-Driven Test Automation (Master Plan) | 5 |
+| [WP-12a](wp-12a-agent-framework.md) | Agent Framework & Orchestration | 5 |
+| [WP-12b](wp-12b-api-test-planner.md) | API Analysis & Test Planning | 5 |
+| [WP-12c](wp-12c-test-generator.md) | Test Generation & HAR Conversion | 5 |
+| [WP-12d](wp-12d-execution-analysis.md) | Execution & Results Analysis | 5 |
+| [WP-12e](wp-12e-auth-and-integration.md) | Auth Instructions & Integration | 5 |
+
+<!-- markdownlint-enable MD013 -->
 
 ## Recommended Phase Order
 
@@ -24,6 +35,7 @@ No active plans — all work packages have been completed.
 | 2 | WP-01, WP-02, WP-03, WP-05 | Core features in parallel |
 | 3 | WP-04, WP-06, WP-07 | Build on Phase 2 |
 | 4 | WP-08 | External integration last |
+| 5 | WP-12 | AI-driven agent-based test automation |
 
 ## Completed Plans
 
