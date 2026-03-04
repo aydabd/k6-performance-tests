@@ -32,12 +32,17 @@ flowchart TD
     CTR --> METRICS[InfluxDB + OTel]
 ```
 
-Two approaches (pick one during implementation):
+Two approaches — decide during implementation with a short ADR:
 
-1. **Volume mount** — mount generated scripts into the base image at runtime.
-   Simpler, no image rebuild needed.
-2. **Multi-stage build** — build a new image with scripts baked in.
-   Better for CI/CD pipelines and k8s jobs.
+1. **Volume mount** (recommended for dev) — mount generated scripts into the
+   base image at runtime. Simpler, no image rebuild needed.
+2. **Multi-stage build** (recommended for CI/k8s) — build a new image with
+   scripts baked in. Better for reproducible CI pipelines and k8s jobs.
+
+Decision criteria: if the target is Docker Compose on a dev machine, use
+volume mount. If the target is a CI pipeline or k8s cluster, use multi-stage.
+Both must be supported; the CLI flag `--container-strategy=mount|build`
+selects the approach.
 
 ## Environment Variables
 

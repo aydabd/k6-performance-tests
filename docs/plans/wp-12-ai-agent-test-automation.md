@@ -53,7 +53,7 @@ flowchart TD
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Agent runtime | Go CLI + TypeScript/JS test output | k6 is built on Go; Go agents maximize performance and share the k6 ecosystem. Generated test scripts remain JS/TS for k6 compatibility. |
+| Agent runtime | Go CLI + TypeScript/JS test output | k6 is built on Go; Go agents share the k6 ecosystem, offer native Docker/k8s client libraries, and produce single-binary artifacts. Generated test scripts remain JS/TS for k6 compatibility. |
 | Agent SDK | Evaluate Claude Agent SDK, Copilot Agent SDK, LangChain Go, or custom MCP-native agents | Pick the simplest SDK that supports MCP tool calling. Decision made in WP-12a. |
 | Test input | k6 HAR recording + OpenAPI + user stories | HAR recordings let users capture real browser sessions and reverse-engineer them into k6 flows automatically. |
 | Auth config | Instruction files (not hardcoded) | Each company has unique auth flows (JWT, OAuth2, API keys). Users provide auth instructions that agents follow. See WP-12j. |

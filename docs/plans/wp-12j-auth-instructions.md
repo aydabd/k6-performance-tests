@@ -37,24 +37,24 @@ and this must be configurable — never hardcoded.
 auth:
   type: jwt  # basic | bearer | jwt | api-key | oauth2
   jwt:
-    loginUrl: "https://api.example.com/auth/login"
+    login_url: "https://api.example.com/auth/login"
     method: POST
     payload:
       username: "${JWT_USERNAME}"     # env var reference
       password: "${JWT_PASSWORD}"     # env var reference
-    tokenField: "access_token"       # field in response JSON
-    tokenPrefix: "Bearer"            # prefix for Authorization header
-    refreshUrl: "https://api.example.com/auth/refresh"  # optional
+    token_field: "access_token"      # field in response JSON
+    token_prefix: "Bearer"           # prefix for Authorization header
+    refresh_url: "https://api.example.com/auth/refresh"  # optional
 
   # Alternative: OAuth2
   oauth2:
-    tokenUrl: "https://auth.example.com/oauth/token"
-    clientId: "${OAUTH2_CLIENT_ID}"
-    clientSecret: "${OAUTH2_CLIENT_SECRET}"
+    token_url: "https://auth.example.com/oauth/token"
+    client_id: "${OAUTH2_CLIENT_ID}"
+    client_secret: "${OAUTH2_CLIENT_SECRET}"
     scope: "read write"
 
   # Alternative: API Key
-  apiKey:
+  api_key:
     header: "X-API-Key"
     value: "${API_KEY}"
 

@@ -29,7 +29,11 @@ update CI, and run an end-to-end demo.
 - [ ] Add Go build step to `ci.yml`.
 - [ ] Add `go test ./...` to CI.
 - [ ] Add `golangci-lint` to CI.
-- [ ] Add integration test: user story → report (with mock API).
+- [ ] Add integration tests with clear boundaries:
+  - Orchestrator state transitions (mock agents).
+  - Agent dispatch sequence (correct order verified).
+  - Mock API response handling (stub HTTP server).
+  - Report generation from synthetic results.
 
 ### Demo
 

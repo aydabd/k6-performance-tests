@@ -6,8 +6,9 @@
 ## Goal
 
 Build an agent that generates k6 JavaScript/TypeScript test scripts from
-test case descriptors, optionally using k6 browser recordings (HAR files)
-as additional input for reverse-engineering real user flows.
+test case descriptors, optionally using HAR (HTTP Archive) files — captured
+from browser sessions, proxy recordings, or k6 browser module — as
+additional input for reverse-engineering real user flows.
 
 ## Scope
 
