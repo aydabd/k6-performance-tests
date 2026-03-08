@@ -12,24 +12,35 @@ deployable end-to-end system.
 Every company has unique auth flows. Users provide a YAML file that
 agents follow. Secrets use `${ENV_VAR}` references — never stored in files.
 
-Supports all types in `src/clients/http-auth.js`: Basic, Bearer, JWT,
-API Key, OAuth2 Client Credentials.
+Supports all types in `src/clients/http-auth.js`: Basic, Bearer/Token,
+JWT, API Key, OAuth2 Client Credentials.
 
 ```yaml
 auth:
-  type: jwt  # basic | bearer | jwt | api-key | oauth2
+  type: jwt  # basic | bearer | jwt | apiKey | oauth2
   jwt:
-    login_url: "https://api.example.com/auth/login"
-    payload:
-      username: "${JWT_USERNAME}"
-      password: "${JWT_PASSWORD}"
-    token_field: "access_token"
-    token_prefix: "Bearer"
+    loginUrl: "${JWT_LOGIN_URL}"
+    username: "${JWT_USERNAME}"
+    password: "${JWT_PASSWORD}"
+    tokenField: "token"
+  # basic:
+  #   username: "${API_USERNAME}"
+  #   password: "${API_PASSWORD}"
+  # bearer:
+  #   token: "${API_TOKEN}"
+  # apiKey:
+  #   apiKey: "${API_KEY}"
+  #   apiKeyHeader: "X-API-Key"
   # oauth2:
-  #   token_url: "${OAUTH2_TOKEN_URL}"
-  #   client_id: "${OAUTH2_CLIENT_ID}"
-  #   client_secret: "${OAUTH2_CLIENT_SECRET}"
+  #   tokenUrl: "${OAUTH2_TOKEN_URL}"
+  #   clientId: "${OAUTH2_CLIENT_ID}"
+  #   clientSecret: "${OAUTH2_CLIENT_SECRET}"
+  #   scope: "${OAUTH2_SCOPE}"
 ```
+
+The YAML keys match the camelCase options in `src/clients/http-auth.js`
+(`loginUrl`, `tokenField`, `clientId`, etc.). The `Bearer` prefix is
+applied automatically by `HttpHeaders` — not configurable in the YAML.
 
 Agents use this to:
 

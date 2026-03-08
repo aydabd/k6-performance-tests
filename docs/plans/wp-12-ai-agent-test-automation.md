@@ -24,7 +24,7 @@ User Story + OpenAPI Spec + (optional) HAR recording
     ↓
 [2] Plan tests → test case descriptors (markdown)
     ↓
-[3] Generate k6 scripts → JS/TS using src/ libraries
+[3] Generate k6 scripts → JS (ES modules) using src/ libraries
     ↓
 [4] Execute in containers → collect results
     ↓

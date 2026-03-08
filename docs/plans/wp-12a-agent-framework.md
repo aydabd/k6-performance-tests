@@ -21,7 +21,7 @@ Criteria: MCP tool-calling support, community activity, ease of testing.
 
 The SDK choice also determines the agent language. If the best SDK is
 TypeScript, agents are TypeScript. If Go or Python has better MCP
-tooling, use that. **Generated k6 test scripts are always JS/TS.**
+tooling, use that. **Generated k6 test scripts are always JS (ES modules).**
 
 ## Agent Interface
 
