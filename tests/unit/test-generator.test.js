@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateK6Script, createTestGeneratorAgent } from '../../src/agents/test-generator.js';
+import { generateK6Script, createTestGeneratorAgent, AUTH_METHOD_MAP } from '../../src/agents/test-generator.js';
 
 const DESCRIPTOR_BEARER = {
     id: 'TC-001',
@@ -81,6 +81,58 @@ describe('generateK6Script - default function', () => {
     it('contains toK6Group call', () => {
         const script = generateK6Script(DESCRIPTOR_BEARER);
         expect(script).toContain('toK6Group');
+    });
+
+    it('uses new HttpClientFactory constructor instead of static create()', () => {
+        const script = generateK6Script(DESCRIPTOR_BEARER);
+        expect(script).toContain('new HttpClientFactory(');
+        expect(script).not.toContain('HttpClientFactory.create(');
+    });
+
+    it('maps bearer auth to getTokenBearerAuth()', () => {
+        const script = generateK6Script(DESCRIPTOR_BEARER);
+        expect(script).toContain('getTokenBearerAuth()');
+        expect(script).not.toContain('getAuth()');
+    });
+
+    it('maps basic auth to getBasicAuth()', () => {
+        const desc = { ...DESCRIPTOR_BEARER, auth: 'basic' };
+        const script = generateK6Script(desc);
+        expect(script).toContain('getBasicAuth()');
+    });
+
+    it('maps apiKey auth to getApiKeyAuth()', () => {
+        const desc = { ...DESCRIPTOR_BEARER, auth: 'apiKey' };
+        const script = generateK6Script(desc);
+        expect(script).toContain('getApiKeyAuth()');
+    });
+
+    it('maps jwt auth to getJwtAuth()', () => {
+        const desc = { ...DESCRIPTOR_BEARER, auth: 'jwt' };
+        const script = generateK6Script(desc);
+        expect(script).toContain('getJwtAuth()');
+    });
+
+    it('maps oauth2 auth to getOAuth2Auth()', () => {
+        const desc = { ...DESCRIPTOR_BEARER, auth: 'oauth2' };
+        const script = generateK6Script(desc);
+        expect(script).toContain('getOAuth2Auth()');
+    });
+
+    it('omits auth lines when auth is none', () => {
+        const script = generateK6Script(DESCRIPTOR_NO_AUTH);
+        expect(script).not.toContain('new Authenticator(');
+        expect(script).not.toContain('getAuth');
+    });
+});
+
+describe('AUTH_METHOD_MAP', () => {
+    it('covers all supported auth types', () => {
+        expect(AUTH_METHOD_MAP.bearer).toBe('getTokenBearerAuth');
+        expect(AUTH_METHOD_MAP.basic).toBe('getBasicAuth');
+        expect(AUTH_METHOD_MAP.apiKey).toBe('getApiKeyAuth');
+        expect(AUTH_METHOD_MAP.jwt).toBe('getJwtAuth');
+        expect(AUTH_METHOD_MAP.oauth2).toBe('getOAuth2Auth');
     });
 });
 

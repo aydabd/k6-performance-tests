@@ -142,6 +142,76 @@ describe('analyzeApi - Swagger v2', () => {
     });
 });
 
+describe('analyzeApi - global security inheritance', () => {
+    it('inherits global security when operation has no security field', () => {
+        const spec = {
+            openapi: '3.0.0',
+            servers: [{ url: 'https://api.example.com' }],
+            security: [{ bearerAuth: [] }],
+            components: {
+                securitySchemes: {
+                    bearerAuth: { type: 'http', scheme: 'bearer' },
+                },
+            },
+            paths: {
+                '/items': {
+                    get: {
+                        summary: 'No local security — inherits global',
+                        responses: {},
+                    },
+                },
+            },
+        };
+        const { endpoints } = analyzeApi(spec);
+        expect(endpoints[0].auth).toBe('bearer');
+    });
+
+    it('operation-level security: [] overrides global and means no auth', () => {
+        const spec = {
+            openapi: '3.0.0',
+            servers: [{ url: 'https://api.example.com' }],
+            security: [{ bearerAuth: [] }],
+            components: {
+                securitySchemes: {
+                    bearerAuth: { type: 'http', scheme: 'bearer' },
+                },
+            },
+            paths: {
+                '/public': {
+                    get: {
+                        summary: 'Explicitly no auth',
+                        security: [],
+                        responses: {},
+                    },
+                },
+            },
+        };
+        const { endpoints } = analyzeApi(spec);
+        expect(endpoints[0].auth).toBe('none');
+    });
+
+    it('inherits global security for Swagger v2 when operation has no security field', () => {
+        const spec = {
+            swagger: '2.0',
+            info: { title: 'Test', version: '1.0' },
+            host: 'api.example.com',
+            basePath: '/api',
+            schemes: ['https'],
+            security: [{ apiKey: [] }],
+            securityDefinitions: {
+                apiKey: { type: 'apiKey', in: 'header', name: 'X-API-Key' },
+            },
+            paths: {
+                '/items': {
+                    get: { summary: 'list', responses: {} },
+                },
+            },
+        };
+        const { endpoints } = analyzeApi(spec);
+        expect(endpoints[0].auth).toBe('apiKey');
+    });
+});
+
 describe('analyzeApi - error cases', () => {
     it('throws when paths is missing', () => {
         expect(() => analyzeApi({ openapi: '3.0.0' }))

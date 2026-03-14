@@ -34,20 +34,24 @@ function buildEnvArgs(envVars) {
 /**
  * Build a Docker run command for executing a k6 script.
  * @param {object} options - Run options.
- * @param {string} options.scriptPath - Absolute path to the script file on the host.
- * @param {string} [options.configPath] - Optional path to k6 config file.
+ * @param {string} options.scriptPath - Absolute path to the script file on the host (required).
  * @param {string} [options.image] - Docker image to use.
  * @param {{[key: string]: string}} [options.envVars] - Environment variables to pass.
  * @param {'volume'|'build'} [options.mountMode] - Mount strategy.
  * @returns {{ command: string, args: string[] }} Command and argument array.
+ * @throws {Error} If scriptPath is missing or empty.
  */
 function buildRunCommand(options = {}) {
     const {
-        scriptPath = '',
+        scriptPath,
         image = DEFAULT_IMAGE,
         envVars = {},
         mountMode = 'volume',
     } = options;
+
+    if (!scriptPath) {
+        throw new Error('scriptPath is required and must be an absolute path');
+    }
 
     const scriptName = scriptPath.split('/').pop();
     const containerScriptPath = `${CONTAINER_SCRIPTS_DIR}/${scriptName}`;
@@ -90,7 +94,7 @@ function createTestRunnerAgent() {
             const { scripts = [], envVars = {} } = input.payload || {};
             const commands = scripts.map((script) =>
                 buildRunCommand({
-                    scriptPath: script.scriptPath || script.id || '',
+                    scriptPath: script.scriptPath,
                     image: script.image || DEFAULT_IMAGE,
                     envVars,
                     mountMode: script.mountMode || 'volume',

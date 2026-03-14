@@ -142,11 +142,19 @@ describe('buildAuthCode', () => {
         expect(code).toContain('new Authenticator(');
     });
 
-    it('generates code for oauth2 type', () => {
-        const config = parseAuthConfig(OAUTH2_YAML);
+    it('generates __ENV bracket access for unresolved env var references', () => {
+        const yaml = `auth:\n  type: jwt\n  loginUrl: \${MISSING_VAR}\n`;
+        const config = parseAuthConfig(yaml);
         const code = buildAuthCode(config);
-        expect(code).toContain('new Authenticator(');
-        expect(code).toContain('clientId');
+        expect(code).toContain('__ENV["MISSING_VAR"]');
+        expect(code).not.toContain('__ENV.MISSING_VAR');
+    });
+
+    it('uses JSON.stringify for regular string values (safe escaping)', () => {
+        const config = parseAuthConfig(BASIC_YAML);
+        const code = buildAuthCode(config);
+        expect(code).toContain('"user"');
+        expect(code).toContain('"pass"');
     });
 });
 

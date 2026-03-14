@@ -19,6 +19,18 @@ import { createAgentOutput, createAgentError } from './agent-framework.js';
 const DEFAULT_OPTIONS = { relativeImportPath: '../src' };
 
 /**
+ * Maps descriptor auth type to the correct Authenticator method name.
+ * @type {Readonly<{[key: string]: string}>}
+ */
+const AUTH_METHOD_MAP = Object.freeze({
+    bearer: 'getTokenBearerAuth',
+    basic: 'getBasicAuth',
+    apiKey: 'getApiKeyAuth',
+    jwt: 'getJwtAuth',
+    oauth2: 'getOAuth2Auth',
+});
+
+/**
  * Build the import block for a generated k6 script.
  * @param {string} importPath - Relative path to the src directory.
  * @param {boolean} needsAuth - Whether to include the Authenticator import.
@@ -55,15 +67,16 @@ function buildOptions(performance) {
 
 /**
  * Build the default export function body for a test descriptor.
- * @param {{ id: string, endpoint: { method: string, path: string } }} descriptor - Test descriptor.
+ * @param {{ id: string, auth: string, endpoint: { method: string, path: string } }} descriptor - Test descriptor.
  * @param {boolean} needsAuth - Whether auth setup is required.
  * @returns {string} Default export function block.
  */
 function buildDefaultFn(descriptor, needsAuth) {
     const { id, endpoint } = descriptor;
     const title = `${endpoint.method} ${endpoint.path}`;
+    const authMethod = AUTH_METHOD_MAP[descriptor.auth] || 'getTokenBearerAuth';
     const authLine = needsAuth
-        ? `    const auth = new Authenticator(__ENV);\n    const headers = auth.getAuth();\n`
+        ? `    const auth = new Authenticator(__ENV);\n    const headers = { Authorization: auth.${authMethod}() };\n`
         : '';
     return (
         `export default function () {\n` +
@@ -72,7 +85,7 @@ function buildDefaultFn(descriptor, needsAuth) {
         `        .build();\n` +
         `${authLine}` +
         `    testCase.toK6Group(() => {\n` +
-        `        HttpClientFactory.create(__ENV.BASE_URL);\n` +
+        `        const { dynamicClient } = new HttpClientFactory({ baseURL: __ENV.BASE_URL });\n` +
         `    });\n` +
         `}`
     );
@@ -118,4 +131,4 @@ function createTestGeneratorAgent() {
     };
 }
 
-export { generateK6Script, createTestGeneratorAgent };
+export { generateK6Script, createTestGeneratorAgent, AUTH_METHOD_MAP };

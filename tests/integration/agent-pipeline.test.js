@@ -1,5 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Orchestrator, StepStatus, createAgentOutput, createAgentError } from '../../src/agents/agent-framework.js';
+import { createApiAnalyzerAgent } from '../../src/agents/api-analyzer.js';
+import { createTestPlannerAgent } from '../../src/agents/test-planner.js';
+import { createTestGeneratorAgent } from '../../src/agents/test-generator.js';
 import { parseAuthConfig, buildAuthCode } from '../../src/agents/auth-loader.js';
 import { analyzeResults } from '../../src/agents/results-analyzer.js';
 
@@ -177,5 +180,123 @@ describe('Report generation from synthetic results', () => {
         expect(typeof tc.passed).toBe('boolean');
         expect(typeof tc.p95).toBe('number');
         expect(typeof tc.errorRate).toBe('number');
+    });
+});
+
+const SAMPLE_SPEC = {
+    openapi: '3.0.0',
+    info: { title: 'Dogs API', version: '1.0' },
+    servers: [{ url: 'https://dog.ceo/api' }],
+    security: [{ bearerAuth: [] }],
+    components: {
+        securitySchemes: {
+            bearerAuth: { type: 'http', scheme: 'bearer' },
+        },
+    },
+    paths: {
+        '/v2/breeds/list/all': {
+            get: {
+                summary: 'List all breeds',
+                security: [{ bearerAuth: [] }],
+                responses: { '200': { description: 'ok' } },
+            },
+        },
+        '/v2/breeds/image/random': {
+            get: {
+                summary: 'Random image',
+                security: [],
+                responses: { '200': { description: 'ok' } },
+            },
+        },
+        '/v2/global-auth-endpoint': {
+            get: {
+                summary: 'No operation security — inherits global bearer',
+                responses: { '200': { description: 'ok' } },
+            },
+        },
+    },
+};
+
+describe('Real pipeline: ANALYZE → PLAN → GENERATE (E2E contract)', () => {
+    it('full analyze–plan–generate pipeline produces valid scripts', async () => {
+        const orch = new Orchestrator({
+            ANALYZE: createApiAnalyzerAgent(),
+            PLAN: createTestPlannerAgent(),
+            GENERATE: createTestGeneratorAgent(),
+            EXECUTE: vi.fn(async (input) => createAgentOutput(input.type, { commands: [] })),
+            REPORT: vi.fn(async (input) => createAgentOutput(input.type, { report: {} })),
+        });
+
+        const result = await orch.run({
+            spec: SAMPLE_SPEC,
+            stories: ['US-42: As a user I want to see dog breeds'],
+        });
+
+        expect(result.status).toBe('ok');
+
+        // ANALYZE → state has endpoints
+        expect(Array.isArray(result.state.endpoints)).toBe(true);
+        expect(result.state.endpoints).toHaveLength(3);
+
+        // PLAN → state has descriptors (one per endpoint)
+        expect(Array.isArray(result.state.descriptors)).toBe(true);
+        expect(result.state.descriptors).toHaveLength(3);
+        expect(result.state.descriptors[0].id).toBe('TC-001');
+        expect(result.state.descriptors[0].userStory).toBe('US-42');
+
+        // GENERATE → state has scripts with correct structure
+        expect(Array.isArray(result.state.scripts)).toBe(true);
+        expect(result.state.scripts).toHaveLength(3);
+        const script = result.state.scripts[0];
+        expect(script.id).toBe('TC-001');
+        expect(typeof script.script).toBe('string');
+        expect(script.script).toContain('export const options');
+        expect(script.script).toContain('export default function');
+        expect(script.script).toContain('new HttpClientFactory(');
+        expect(script.script).not.toContain('HttpClientFactory.create(');
+    });
+
+    it('ANALYZE correctly detects auth from spec — including global security inheritance', async () => {
+        const agent = createApiAnalyzerAgent();
+        const input = { type: 'ANALYZE', payload: { spec: SAMPLE_SPEC }, context: {} };
+        const output = await agent(input);
+
+        const bearerEndpoint = output.payload.endpoints.find(
+            (e) => e.path === '/v2/breeds/list/all'
+        );
+        const noneEndpoint = output.payload.endpoints.find(
+            (e) => e.path === '/v2/breeds/image/random'
+        );
+        const globalEndpoint = output.payload.endpoints.find(
+            (e) => e.path === '/v2/global-auth-endpoint'
+        );
+        expect(bearerEndpoint.auth).toBe('bearer');
+        expect(noneEndpoint.auth).toBe('none');
+        expect(globalEndpoint.auth).toBe('bearer');
+    });
+
+    it('GENERATE produces auth-aware scripts using correct Authenticator methods', async () => {
+        const agent = createTestGeneratorAgent();
+        const bearerDescriptor = {
+            id: 'TC-001',
+            userStory: 'US-42',
+            endpoint: { method: 'GET', path: '/v2/breeds/list/all' },
+            auth: 'bearer',
+            steps: ['GET /v2/breeds/list/all', 'Assert 200', 'Assert response body'],
+            performance: { p95: 500, errorRate: 0.01 },
+            tags: ['smoke'],
+        };
+        const noneDescriptor = { ...bearerDescriptor, id: 'TC-002', auth: 'none' };
+
+        const output = await agent({
+            type: 'GENERATE',
+            payload: { descriptors: [bearerDescriptor, noneDescriptor] },
+            context: {},
+        });
+
+        expect(output.status).toBe('ok');
+        expect(output.payload.scripts[0].script).toContain('getTokenBearerAuth()');
+        expect(output.payload.scripts[0].script).not.toContain('getAuth()');
+        expect(output.payload.scripts[1].script).not.toContain('new Authenticator(');
     });
 });

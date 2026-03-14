@@ -104,7 +104,11 @@ function buildAuthCode(authConfig) {
     const entries = Object.entries(config)
         .map(([k, v]) => {
             const str = String(v);
-            const envRef = str.startsWith('${') ? str.replace(/\$\{([^}]+)\}/g, '__ENV.$1') : `'${str}'`;
+            // Unresolved ${VAR_NAME} references become __ENV['VAR_NAME'] in generated k6 code.
+            const envMatch = str.match(/^\$\{([^}]+)\}$/);
+            const envRef = envMatch
+                ? `__ENV[${JSON.stringify(envMatch[1])}]`
+                : JSON.stringify(str);
             return `    ${k}: ${envRef}`;
         });
 

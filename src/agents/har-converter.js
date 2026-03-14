@@ -16,35 +16,6 @@ import { createAgentOutput, createAgentError } from './agent-framework.js';
 const SEQUENTIAL_GROUP_SIZE = 5;
 
 /**
- * Derive a safe JavaScript identifier segment from a URL path.
- * @param {string} urlString - Full URL string.
- * @returns {string} Camel-case path identifier, e.g. 'apiV2Breeds'.
- */
-function pathToIdentifier(urlString) {
-    try {
-        const url = new URL(urlString);
-        return url.pathname
-            .split('/')
-            .filter(Boolean)
-            .map((seg, i) =>
-                i === 0 ? seg.replace(/[^a-zA-Z0-9]/g, '') : seg.charAt(0).toUpperCase() + seg.slice(1).replace(/[^a-zA-Z0-9]/g, '')
-            )
-            .join('') || 'request';
-    } catch {
-        return 'request';
-    }
-}
-
-/**
- * Derive the HTTP method identifier used on the dynamic client.
- * @param {string} method - HTTP method string.
- * @returns {string} Lower-case method name.
- */
-function methodIdentifier(method) {
-    return (method || 'get').toLowerCase();
-}
-
-/**
  * Group HAR entries by pageref, falling back to sequential groups.
  * @param {Array} entries - HAR log entries.
  * @returns {Map<string, Array>} Map of group name → entries.
@@ -72,6 +43,7 @@ function groupEntries(entries) {
 
 /**
  * Generate k6 code lines for a group of HAR entries.
+ * Uses httpClient.request() with the full URL from each HAR entry.
  * @param {string} groupName - The group name used as the k6 group label.
  * @param {Array} entries - HAR entries in this group.
  * @returns {string} k6 group block as a string.
@@ -80,13 +52,12 @@ function buildGroupBlock(groupName, entries) {
     const calls = entries.map((entry) => {
         const req = entry.request || {};
         const url = (req.url || '');
-        const method = methodIdentifier(req.method);
-        const id = pathToIdentifier(url);
-        return `        dynamicClient.${id}.${method}('${url}');`;
+        const method = (req.method || 'GET').toUpperCase();
+        return `        httpClient.request(${JSON.stringify(method)}, ${JSON.stringify(url)});`;
     });
 
     return (
-        `    group('${groupName}', () => {\n` +
+        `    group(${JSON.stringify(groupName)}, () => {\n` +
         calls.join('\n') +
         `\n    });`
     );
@@ -123,7 +94,7 @@ function convertHarToK6(har, options = {}) {
         `import { HttpClientFactory } from '${importPath}/clients/http-client.js';\n` +
         `\n` +
         `export default function () {\n` +
-        `    const dynamicClient = HttpClientFactory.create(__ENV.BASE_URL);\n` +
+        `    const { httpClient } = new HttpClientFactory({ baseURL: __ENV.BASE_URL });\n` +
         groupBlocks.join('\n') +
         `\n}\n`
     );

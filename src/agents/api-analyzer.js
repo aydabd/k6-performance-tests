@@ -30,12 +30,15 @@ function resolveAuthType(scheme) {
 
 /**
  * Determine the effective auth type for an operation using global security schemes.
+ * Falls back to spec-level global security when the operation has no `security` field.
  * @param {object} operation - The operation object (may have `security` field).
  * @param {object} schemes - Map of scheme name → scheme definition.
+ * @param {Array} [globalSecurity] - Spec-level security requirements used as fallback.
  * @returns {string} Auth type string.
  */
-function operationAuth(operation, schemes) {
-    const securityReqs = operation.security;
+function operationAuth(operation, schemes, globalSecurity = []) {
+    // operation.security === undefined means "inherit from global"; [] means "no auth"
+    const securityReqs = operation.security !== undefined ? operation.security : globalSecurity;
     if (!securityReqs || securityReqs.length === 0) return 'none';
     const firstKey = Object.keys(securityReqs[0])[0];
     return resolveAuthType(schemes[firstKey]);
@@ -49,6 +52,7 @@ function operationAuth(operation, schemes) {
 function analyzeV3(spec) {
     const baseUrl = (spec.servers && spec.servers[0] && spec.servers[0].url) || '';
     const schemes = (spec.components && spec.components.securitySchemes) || {};
+    const globalSecurity = spec.security || [];
     const endpoints = [];
     const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'];
 
@@ -56,7 +60,7 @@ function analyzeV3(spec) {
         for (const method of HTTP_METHODS) {
             const operation = pathItem[method];
             if (!operation) continue;
-            const auth = operationAuth(operation, schemes);
+            const auth = operationAuth(operation, schemes, globalSecurity);
             const responseSchema = operation.responses
                 ? JSON.stringify(operation.responses['200'] || {})
                 : '';
@@ -85,6 +89,7 @@ function analyzeV2(spec) {
     const basePath = spec.basePath || '';
     const baseUrl = `${scheme}://${host}${basePath}`;
     const definitions = (spec.securityDefinitions) || {};
+    const globalSecurity = spec.security || [];
     const endpoints = [];
     const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'];
 
@@ -92,7 +97,7 @@ function analyzeV2(spec) {
         for (const method of HTTP_METHODS) {
             const operation = pathItem[method];
             if (!operation) continue;
-            const auth = operationAuth(operation, definitions);
+            const auth = operationAuth(operation, definitions, globalSecurity);
             const responseSchema = operation.responses
                 ? JSON.stringify(operation.responses['200'] || {})
                 : '';

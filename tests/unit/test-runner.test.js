@@ -66,6 +66,16 @@ describe('buildRunCommand - env vars', () => {
     });
 });
 
+describe('buildRunCommand - scriptPath validation', () => {
+    it('throws when scriptPath is not provided', () => {
+        expect(() => buildRunCommand({})).toThrow('scriptPath is required');
+    });
+
+    it('throws when scriptPath is empty string', () => {
+        expect(() => buildRunCommand({ scriptPath: '' })).toThrow('scriptPath is required');
+    });
+});
+
 describe('createTestRunnerAgent', () => {
     it('returns ok output with commands array', async () => {
         const agent = createTestRunnerAgent();
@@ -87,5 +97,15 @@ describe('createTestRunnerAgent', () => {
         const agent = createTestRunnerAgent();
         const output = await agent({ type: 'EXECUTE', payload: { scripts: [] }, context: {} });
         expect(output.payload.commands).toEqual([]);
+    });
+
+    it('returns error output when a script is missing scriptPath', async () => {
+        const agent = createTestRunnerAgent();
+        const output = await agent({
+            type: 'EXECUTE',
+            payload: { scripts: [{ id: 'TC-001', script: 'export default function(){}' }] },
+            context: {},
+        });
+        expect(output.status).toBe('error');
     });
 });

@@ -49,13 +49,13 @@ describe('convertHarToK6 - basic output', () => {
 describe('convertHarToK6 - grouping by pageref', () => {
     it('creates groups named after pagerefs', () => {
         const script = convertHarToK6(HAR_WITH_PAGEREFS);
-        expect(script).toContain("group('page_1'");
-        expect(script).toContain("group('page_2'");
+        expect(script).toContain('"page_1"');
+        expect(script).toContain('"page_2"');
     });
 
     it('places both page_1 entries in the same group', () => {
         const script = convertHarToK6(HAR_WITH_PAGEREFS);
-        const page1Block = script.split("group('page_2'")[0];
+        const page1Block = script.split('"page_2"')[0];
         expect(page1Block).toContain('/v2/breeds');
         expect(page1Block).toContain('/v2/images');
     });
@@ -64,14 +64,14 @@ describe('convertHarToK6 - grouping by pageref', () => {
 describe('convertHarToK6 - sequential fallback grouping', () => {
     it('creates groups named group_1 and group_2 for 7 entries', () => {
         const script = convertHarToK6(HAR_NO_PAGEREFS);
-        expect(script).toContain("group('group_1'");
-        expect(script).toContain("group('group_2'");
+        expect(script).toContain('"group_1"');
+        expect(script).toContain('"group_2"');
     });
 
     it('first group has 5 entries', () => {
         const script = convertHarToK6(HAR_NO_PAGEREFS);
-        const group1Block = script.split("group('group_2'")[0];
-        const callCount = (group1Block.match(/dynamicClient\./g) || []).length;
+        const group1Block = script.split('"group_2"')[0];
+        const callCount = (group1Block.match(/httpClient\.request\(/g) || []).length;
         expect(callCount).toBe(5);
     });
 });

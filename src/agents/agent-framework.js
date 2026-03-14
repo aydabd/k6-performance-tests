@@ -4,7 +4,7 @@
  * @example
  * ```javascript
  * import { Orchestrator, AgentMessageType } from './agent-framework.js';
- * const orchestrator = new Orchestrator({ analyze: myAgent });
+ * const orchestrator = new Orchestrator({ ANALYZE: myAgent });
  * const result = await orchestrator.run({ spec });
  * ```
  * @author Aydin Abdi <ayd.abd@gmail.com>
@@ -128,7 +128,7 @@ class Orchestrator {
      * @returns {Promise<{status: string, checklist: Array, state: object, failedStep?: string, error?: string}>} Pipeline result.
      */
     async run(context) {
-        const state = {};
+        const state = { ...context };
 
         for (const item of this._checklist) {
             const agent = this._agents[item.step];
