@@ -22,6 +22,7 @@ const config = [
     },
     {
         files: ["src/**/*.js"],
+        ignores: ["src/agents/**/*.js"],
         languageOptions: {
             sourceType: "module",
             globals: {
@@ -32,6 +33,20 @@ const config = [
                 setTimeout: "readonly",
                 clearTimeout: "readonly",
                 console: "readonly",
+            },
+        },
+    },
+    {
+        files: ["src/agents/**/*.js"],
+        languageOptions: {
+            sourceType: "module",
+            globals: {
+                // Node.js globals for agent code
+                process: "readonly",
+                Buffer: "readonly",
+                console: "readonly",
+                URL: "readonly",
+                URLSearchParams: "readonly",
             },
         },
     },

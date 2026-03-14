@@ -1,0 +1,6 @@
+auth:
+  type: jwt
+  loginUrl: ${JWT_LOGIN_URL}
+  username: ${JWT_USERNAME}
+  password: ${JWT_PASSWORD}
+  tokenPath: access_token

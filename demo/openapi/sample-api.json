@@ -1,0 +1,63 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Dog CEO API",
+    "version": "1.0.0",
+    "description": "Random dog image API with breed listing."
+  },
+  "servers": [
+    {
+      "url": "https://dog.ceo/api"
+    }
+  ],
+  "paths": {
+    "/v2/breeds/list/all": {
+      "get": {
+        "summary": "List all dog breeds",
+        "operationId": "listAllBreeds",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response with breed map",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "object" },
+                    "status": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/breeds/image/random": {
+      "get": {
+        "summary": "Get a random breed image",
+        "operationId": "randomImage",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Random image URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "status": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
