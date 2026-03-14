@@ -16,7 +16,7 @@ npm install
 ## Files
 
 | File | Purpose |
-|---|---|
+| ---- | ------- |
 | `user-stories/US-42.md` | Sample user story (browse dog breeds) |
 | `openapi/sample-api.json` | OpenAPI v3 spec for the Dog CEO API |
 | `auth-instructions.yaml` | JWT auth config (uses `${ENV_VAR}` references) |

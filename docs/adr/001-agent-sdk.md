@@ -10,7 +10,7 @@ WP-12 requires an agent runtime that can orchestrate a multi-step AI pipeline
 (analyze → plan → generate → execute → report). We evaluated four options:
 
 | Option | MCP Support | Dependencies | Testability |
-|---|---|---|---|
+| ------ | ----------- | ------------ | ----------- |
 | Claude Agent SDK | Strong | TypeScript/Python only | Medium |
 | Copilot Agent SDK | GitHub-integrated | TypeScript only | Medium |
 | LangChain JS | Large community | Heavy (many packages) | Complex |
