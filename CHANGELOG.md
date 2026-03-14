@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.2](https://github.com/aydabd/k6-performance-tests/compare/v2.4.1...v2.4.2) (2026-03-14)
+
+
+### Documentation
+
+* simplify WP-12 into 5 focused sub-task plans with k6-integrated agents ([#91](https://github.com/aydabd/k6-performance-tests/issues/91)) ([eeb4a31](https://github.com/aydabd/k6-performance-tests/commit/eeb4a31109257ff714c5e33314b95eec321aa914))
+
 ## [2.4.1](https://github.com/aydabd/k6-performance-tests/compare/v2.4.0...v2.4.1) (2026-03-03)
 
 
