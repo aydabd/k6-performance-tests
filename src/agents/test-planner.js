@@ -64,7 +64,7 @@ function buildDescriptor(index, endpoint, storyId) {
  * Plan test cases from an endpoint map and user stories.
  * Generates one test case descriptor per endpoint.
  * @param {{ endpoints: Array }} endpointMap - Endpoint map from analyzeApi.
- * @param {string[]} [userStories=[]] - Array of user story strings.
+ * @param {string[]} [userStories] - Array of user story strings.
  * @returns {object[]} Array of test case descriptors.
  */
 function planTests(endpointMap, userStories = []) {
@@ -81,7 +81,7 @@ function planTests(endpointMap, userStories = []) {
 
 /**
  * Create a test planner agent function.
- * @returns {Function} Async agent function `(input) → output`.
+ * @returns {(input: object) => Promise<object>} Async agent function.
  */
 function createTestPlannerAgent() {
     /**

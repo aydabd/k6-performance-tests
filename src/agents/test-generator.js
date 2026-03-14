@@ -81,8 +81,8 @@ function buildDefaultFn(descriptor, needsAuth) {
 /**
  * Generate a k6 ES module script from a test case descriptor.
  * @param {object} descriptor - Test case descriptor from planTests.
- * @param {object} [options={}] - Generation options.
- * @param {string} [options.relativeImportPath='../src'] - Import path to the src directory.
+ * @param {object} [options] - Generation options.
+ * @param {string} [options.relativeImportPath] - Import path to the src directory.
  * @returns {string} Generated k6 script as a string.
  */
 function generateK6Script(descriptor, options = {}) {
@@ -96,7 +96,7 @@ function generateK6Script(descriptor, options = {}) {
 
 /**
  * Create a test generator agent function.
- * @returns {Function} Async agent function `(input) → output`.
+ * @returns {(input: object) => Promise<object>} Async agent function.
  */
 function createTestGeneratorAgent() {
     /**

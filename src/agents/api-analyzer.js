@@ -138,7 +138,7 @@ function analyzeApi(spec) {
 
 /**
  * Create an API analyzer agent function.
- * @returns {Function} Async agent function `(input) → output`.
+ * @returns {(input: object) => Promise<object>} Async agent function.
  */
 function createApiAnalyzerAgent() {
     /**

@@ -80,7 +80,7 @@ function analyzeResults(k6Summary, descriptors) {
 
 /**
  * Create a results analyzer agent function.
- * @returns {Function} Async agent function `(input) → output`.
+ * @returns {(input: object) => Promise<object>} Async agent function.
  */
 function createResultsAnalyzerAgent() {
     /**

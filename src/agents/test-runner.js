@@ -20,7 +20,7 @@ const DEFAULT_IMAGE = 'grafana/k6';
 
 /**
  * Build an array of -e KEY=VALUE args from an env vars map.
- * @param {Object.<string, string>} envVars - Environment variable key-value pairs.
+ * @param {{[key: string]: string}} envVars - Environment variable key-value pairs.
  * @returns {string[]} Flat array of ['-e', 'KEY=VALUE', ...].
  */
 function buildEnvArgs(envVars) {
@@ -36,9 +36,9 @@ function buildEnvArgs(envVars) {
  * @param {object} options - Run options.
  * @param {string} options.scriptPath - Absolute path to the script file on the host.
  * @param {string} [options.configPath] - Optional path to k6 config file.
- * @param {string} [options.image=DEFAULT_IMAGE] - Docker image to use.
- * @param {Object.<string, string>} [options.envVars={}] - Environment variables to pass.
- * @param {'volume'|'build'} [options.mountMode='volume'] - Mount strategy.
+ * @param {string} [options.image] - Docker image to use.
+ * @param {{[key: string]: string}} [options.envVars] - Environment variables to pass.
+ * @param {'volume'|'build'} [options.mountMode] - Mount strategy.
  * @returns {{ command: string, args: string[] }} Command and argument array.
  */
 function buildRunCommand(options = {}) {
@@ -77,7 +77,7 @@ function buildRunCommand(options = {}) {
 /**
  * Create a test runner agent function.
  * Builds Docker commands but does NOT execute them.
- * @returns {Function} Async agent function `(input) → output`.
+ * @returns {(input: object) => Promise<object>} Async agent function.
  */
 function createTestRunnerAgent() {
     /**

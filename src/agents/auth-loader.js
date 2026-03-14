@@ -103,7 +103,8 @@ function buildAuthCode(authConfig) {
     const config = authConfig[type] || {};
     const entries = Object.entries(config)
         .map(([k, v]) => {
-            const envRef = v.startsWith('${') ? v.replace(/\$\{([^}]+)\}/g, '__ENV.$1') : `'${v}'`;
+            const str = String(v);
+            const envRef = str.startsWith('${') ? str.replace(/\$\{([^}]+)\}/g, '__ENV.$1') : `'${str}'`;
             return `    ${k}: ${envRef}`;
         });
 
@@ -116,7 +117,7 @@ function buildAuthCode(authConfig) {
 
 /**
  * Create an auth loader agent function.
- * @returns {Function} Async agent function `(input) → output`.
+ * @returns {(input: object) => Promise<object>} Async agent function.
  */
 function createAuthLoaderAgent() {
     /**

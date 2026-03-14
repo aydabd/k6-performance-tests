@@ -95,8 +95,8 @@ function buildGroupBlock(groupName, entries) {
 /**
  * Convert a HAR object into a k6 ES module script.
  * @param {object} har - Parsed HAR object.
- * @param {object} [options={}] - Options.
- * @param {string} [options.relativeImportPath='../src'] - Import path to src.
+ * @param {object} [options] - Options.
+ * @param {string} [options.relativeImportPath] - Import path to src.
  * @returns {string} Generated k6 script string.
  * @throws {Error} If HAR is malformed or has no entries.
  */
@@ -114,8 +114,8 @@ function convertHarToK6(har, options = {}) {
     const groups = groupEntries(entries);
     const groupBlocks = [];
 
-    for (const [name, groupEntries] of groups) {
-        groupBlocks.push(buildGroupBlock(name, groupEntries));
+    for (const [name, groupEntriesList] of groups) {
+        groupBlocks.push(buildGroupBlock(name, groupEntriesList));
     }
 
     return (
@@ -131,7 +131,7 @@ function convertHarToK6(har, options = {}) {
 
 /**
  * Create a HAR converter agent function.
- * @returns {Function} Async agent function `(input) → output`.
+ * @returns {(input: object) => Promise<object>} Async agent function.
  */
 function createHarConverterAgent() {
     /**

@@ -64,7 +64,7 @@ function createAgentInput(type, payload, context) {
  * Create a successful agent output message.
  * @param {string} type - The message type.
  * @param {object} payload - The result payload to merge into pipeline state.
- * @param {string} [status='ok'] - The status string.
+ * @param {string} [status] - The status string.
  * @returns {{ type: string, payload: object, status: string }} Agent output.
  */
 function createAgentOutput(type, payload, status = 'ok') {
@@ -75,7 +75,7 @@ function createAgentOutput(type, payload, status = 'ok') {
  * Create an error agent output message.
  * @param {string} type - The message type.
  * @param {Error|string} error - The error that occurred.
- * @param {object} [context={}] - The context at the time of failure.
+ * @param {object} [context] - The context at the time of failure.
  * @returns {{ type: string, payload: null, status: string, error: string, context: object }} Error output.
  */
 function createAgentError(type, error, context = {}) {
@@ -100,9 +100,9 @@ function createAgentError(type, error, context = {}) {
 class Orchestrator {
     /**
      * Create a new Orchestrator.
-     * @param {Object.<string, Function>} agents - Map of step name → async agent function.
-     * @param {object} [options={}] - Configuration options.
-     * @param {number} [options.maxRetries=MAX_RETRIES] - Max retry attempts per step.
+     * @param {{[key: string]: (input: object) => Promise<object>}} agents - Map of step name → async agent function.
+     * @param {object} [options] - Configuration options.
+     * @param {number} [options.maxRetries] - Max retry attempts per step.
      */
     constructor(agents = {}, options = {}) {
         this._agents = agents;

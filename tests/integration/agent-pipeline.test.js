@@ -8,7 +8,7 @@ const PIPELINE_STEPS = ['ANALYZE', 'PLAN', 'GENERATE', 'EXECUTE', 'REPORT'];
 /**
  * Build a full set of mock agents that succeed and record call order.
  * @param {string[]} order - Array to push step names into on each call.
- * @returns {Object.<string, Function>} Agent map.
+ * @returns {{[key: string]: (input: object) => Promise<object>}} Agent map.
  */
 function buildMockAgents(order) {
     return Object.fromEntries(
