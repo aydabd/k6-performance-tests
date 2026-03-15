@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateK6Script, createTestGeneratorAgent, AUTH_METHOD_MAP } from '../../src/agents/test-generator.js';
+import { generateK6Script, createTestGeneratorAgent, AUTH_METHOD_MAP, pathToProxyCall } from '../../src/agents/test-generator.js';
 
 const DESCRIPTOR_BEARER = {
     id: 'TC-001',
@@ -22,9 +22,9 @@ describe('generateK6Script - imports', () => {
         expect(typeof generateK6Script(DESCRIPTOR_BEARER)).toBe('string');
     });
 
-    it('imports TestCaseBuilder from correct path', () => {
-        const script = generateK6Script(DESCRIPTOR_BEARER, { relativeImportPath: '../src' });
-        expect(script).toContain("from '../src/test-case.js'");
+    it('imports group and sleep from k6', () => {
+        const script = generateK6Script(DESCRIPTOR_BEARER);
+        expect(script).toContain("import { group, sleep } from 'k6'");
     });
 
     it('imports HttpClientFactory from correct path', () => {
@@ -44,49 +44,61 @@ describe('generateK6Script - imports', () => {
 
     it('uses custom relativeImportPath', () => {
         const script = generateK6Script(DESCRIPTOR_BEARER, { relativeImportPath: '../../custom' });
-        expect(script).toContain("from '../../custom/test-case.js'");
+        expect(script).toContain("from '../../custom/clients/http-client.js'");
+    });
+
+    it('does not import TestCaseBuilder (causes k6 init failure)', () => {
+        const script = generateK6Script(DESCRIPTOR_BEARER);
+        expect(script).not.toContain('TestCaseBuilder');
+        expect(script).not.toContain('test-case.js');
     });
 });
 
-describe('generateK6Script - options export', () => {
-    it('exports options with correct p95 threshold', () => {
+describe('generateK6Script - no export const options (config file handles thresholds)', () => {
+    it('does not export const options', () => {
         const script = generateK6Script(DESCRIPTOR_BEARER);
-        expect(script).toContain("'p(95)<500'");
+        expect(script).not.toContain('export const options');
     });
 
-    it('exports options with correct error rate threshold', () => {
+    it('does not contain p95 threshold in script', () => {
         const script = generateK6Script(DESCRIPTOR_BEARER);
-        expect(script).toContain("'rate<0.01'");
-    });
-
-    it('uses custom thresholds from descriptor', () => {
-        const custom = { ...DESCRIPTOR_BEARER, performance: { p95: 1000, errorRate: 0.05 } };
-        const script = generateK6Script(custom);
-        expect(script).toContain("'p(95)<1000'");
-        expect(script).toContain("'rate<0.05'");
+        expect(script).not.toContain('p(95)');
     });
 });
 
 describe('generateK6Script - default function', () => {
-    it('contains TestCaseBuilder with descriptor id', () => {
-        const script = generateK6Script(DESCRIPTOR_BEARER);
-        expect(script).toContain("'TC-001'");
-    });
-
     it('contains export default function', () => {
         const script = generateK6Script(DESCRIPTOR_BEARER);
         expect(script).toContain('export default function');
     });
 
-    it('contains toK6Group call', () => {
+    it('contains group() call with descriptor id in title', () => {
         const script = generateK6Script(DESCRIPTOR_BEARER);
-        expect(script).toContain('toK6Group');
+        expect(script).toContain('group(');
+        expect(script).toContain('TC-001');
     });
 
-    it('uses new HttpClientFactory constructor instead of static create()', () => {
+    it('contains sleep(1) call', () => {
+        const script = generateK6Script(DESCRIPTOR_BEARER);
+        expect(script).toContain('sleep(1)');
+    });
+
+    it('uses new HttpClientFactory constructor with host', () => {
         const script = generateK6Script(DESCRIPTOR_BEARER);
         expect(script).toContain('new HttpClientFactory(');
+        expect(script).toContain('host:');
         expect(script).not.toContain('HttpClientFactory.create(');
+    });
+
+    it('uses API_SERVER env var (not BASE_URL)', () => {
+        const script = generateK6Script(DESCRIPTOR_BEARER);
+        expect(script).toContain('API_SERVER');
+        expect(script).not.toContain('BASE_URL');
+    });
+
+    it('does not contain toK6Group (causes k6 init failure)', () => {
+        const script = generateK6Script(DESCRIPTOR_BEARER);
+        expect(script).not.toContain('toK6Group');
     });
 
     it('maps bearer auth to getTokenBearerAuth()', () => {
@@ -126,6 +138,28 @@ describe('generateK6Script - default function', () => {
     });
 });
 
+describe('pathToProxyCall', () => {
+    it('converts simple path to proxy chain', () => {
+        expect(pathToProxyCall('/v2/breeds', 'GET')).toBe('dynamicClient.v2.breeds.get()');
+    });
+
+    it('converts nested path to chained proxy', () => {
+        expect(pathToProxyCall('/v2/breeds/list/all', 'GET')).toBe('dynamicClient.v2.breeds.list.all.get()');
+    });
+
+    it('converts path parameter to function call', () => {
+        expect(pathToProxyCall('/v2/breeds/{id}', 'GET')).toBe('dynamicClient.v2.breeds("id").get()');
+    });
+
+    it('handles POST method', () => {
+        expect(pathToProxyCall('/api/users', 'POST')).toBe('dynamicClient.api.users.post()');
+    });
+
+    it('handles path with leading slash removed', () => {
+        expect(pathToProxyCall('breeds', 'GET')).toBe('dynamicClient.breeds.get()');
+    });
+});
+
 describe('AUTH_METHOD_MAP', () => {
     it('covers all supported auth types', () => {
         expect(AUTH_METHOD_MAP.bearer).toBe('getTokenBearerAuth');
@@ -156,4 +190,19 @@ describe('createTestGeneratorAgent', () => {
         const output = await agent({ type: 'GENERATE', payload: { descriptors: [] }, context: {} });
         expect(output.payload.scripts).toEqual([]);
     });
+
+    it('generated script does not use TestCaseBuilder', async () => {
+        const agent = createTestGeneratorAgent();
+        const output = await agent({
+            type: 'GENERATE',
+            payload: { descriptors: [DESCRIPTOR_BEARER] },
+            context: {},
+        });
+        const script = output.payload.scripts[0].script;
+        expect(script).not.toContain('TestCaseBuilder');
+        expect(script).not.toContain('export const options');
+        expect(script).toContain('group(');
+        expect(script).toContain('sleep(');
+    });
 });
+

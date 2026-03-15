@@ -19,33 +19,61 @@ npm install
 | ---- | ------- |
 | `user-stories/US-42.md` | Sample user story (browse dog breeds) |
 | `openapi/sample-api.json` | OpenAPI v3 spec for the Dog CEO API |
+| `har/sample-dogapi.har` | Sample HAR recording of the Dog CEO API browser session |
 | `auth-instructions.yaml` | JWT auth config (uses `${ENV_VAR}` references) |
+| `run-pipeline.js` | Runnable end-to-end demo (OpenAPI → k6 scripts → Docker commands) |
+| `run-har-pipeline.js` | Runnable HAR-to-k6 demo (HAR recording → k6 script) |
 
-## Run the Pipeline
+## Run the Pipeline (OpenAPI spec → k6 scripts)
 
-```javascript
-import { Orchestrator } from '../src/agents/agent-framework.js';
-import { createApiAnalyzerAgent } from '../src/agents/api-analyzer.js';
-import { createTestPlannerAgent } from '../src/agents/test-planner.js';
-import { createTestGeneratorAgent } from '../src/agents/test-generator.js';
-import { createTestRunnerAgent } from '../src/agents/test-runner.js';
-import { createResultsAnalyzerAgent } from '../src/agents/results-analyzer.js';
-import sampleSpec from './openapi/sample-api.json' assert { type: 'json' };
+```bash
+node demo/run-pipeline.js
+```
 
-const orchestrator = new Orchestrator({
-    ANALYZE: createApiAnalyzerAgent(),
-    PLAN: createTestPlannerAgent(),
-    GENERATE: createTestGeneratorAgent(),
-    EXECUTE: createTestRunnerAgent(),
-    REPORT: createResultsAnalyzerAgent(),
-});
+This runs the full 5-stage pipeline:
 
-const result = await orchestrator.run({
-    spec: sampleSpec,
-    stories: ['US-42: As a user I want to see dog breeds'],
-});
+1. **ANALYZE** — parses `openapi/sample-api.json` into a normalized endpoint map
+2. **PLAN** — converts endpoints + user story into test case descriptors
+3. **GENERATE** — produces runnable k6 ES module scripts (group/sleep pattern)
+4. **EXECUTE** — writes scripts to `/tmp/k6-agent-pipeline/` and builds Docker commands
+5. **REPORT** — evaluates results against performance thresholds
 
-console.log(JSON.stringify(result, null, 2));
+Each generated script follows the proven `simple-test.js` pattern:
+
+- `import { group, sleep } from 'k6'`
+- `new HttpClientFactory({ host: __ENV.API_SERVER })` — no static `.create()`
+- No `export const options` — thresholds come from the config file
+- No `TestCaseBuilder` — would cause k6 init failure in Docker
+
+To run a generated script in Docker:
+
+```bash
+docker run --rm \
+  -v "/tmp/k6-agent-pipeline/TC-001.js:/scripts/TC-001.js" \
+  -e API_SERVER=dog.ceo \
+  grafana/k6 run /scripts/TC-001.js
+```
+
+## Run the HAR Pipeline (browser recording → k6 script)
+
+```bash
+node demo/run-har-pipeline.js
+```
+
+This simulates the Playwright/MCP browser recording workflow:
+
+1. A browser session is recorded as a HAR file (`har/sample-dogapi.har`)
+2. The HAR converter agent transforms each request into a `httpClient.request()` call
+3. Requests are grouped by page (reflecting the original navigation flow)
+4. The resulting k6 script can run in Docker immediately
+
+To run the HAR-generated script in Docker:
+
+```bash
+docker run --rm \
+  -v "/tmp/k6-agent-pipeline/har-generated-test.js:/scripts/har-test.js" \
+  -e BASE_URL=https://dog.ceo \
+  grafana/k6 run /scripts/har-test.js
 ```
 
 ## Auth Config

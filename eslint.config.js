@@ -51,6 +51,23 @@ const config = [
         },
     },
     {
+        files: ["demo/**/*.js"],
+        languageOptions: {
+            sourceType: "module",
+            globals: {
+                // Node.js globals for demo scripts
+                process: "readonly",
+                Buffer: "readonly",
+                console: "readonly",
+                URL: "readonly",
+                URLSearchParams: "readonly",
+            },
+        },
+        rules: {
+            "jsdoc/require-jsdoc": "off",
+        },
+    },
+    {
         files: ["tests/**/*.js"],
         languageOptions: {
             sourceType: "module",
@@ -59,6 +76,7 @@ const config = [
                 global: "readonly",
                 Buffer: "readonly",
                 process: "readonly",
+                URL: "readonly",
             },
         },
         rules: {

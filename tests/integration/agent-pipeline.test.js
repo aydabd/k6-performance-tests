@@ -250,10 +250,12 @@ describe('Real pipeline: ANALYZE → PLAN → GENERATE (E2E contract)', () => {
         const script = result.state.scripts[0];
         expect(script.id).toBe('TC-001');
         expect(typeof script.script).toBe('string');
-        expect(script.script).toContain('export const options');
+        expect(script.script).not.toContain('export const options');
         expect(script.script).toContain('export default function');
         expect(script.script).toContain('new HttpClientFactory(');
         expect(script.script).not.toContain('HttpClientFactory.create(');
+        expect(script.script).toContain('group(');
+        expect(script.script).toContain('sleep(');
     });
 
     it('ANALYZE correctly detects auth from spec — including global security inheritance', async () => {

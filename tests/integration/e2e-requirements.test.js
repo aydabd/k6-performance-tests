@@ -171,17 +171,18 @@ describe('REQ-WP12c: Generate valid k6 ES module scripts from test descriptors',
         tags: ['smoke'],
     };
 
-    it('generated script is a valid ES module with options and default export', () => {
+    it('generated script is a valid ES module with group/sleep and default export', () => {
         const script = generateK6Script(descriptor);
 
-        expect(script).toContain("import { TestCaseBuilder }");
+        expect(script).toContain("import { group, sleep } from 'k6'");
         expect(script).toContain("import { HttpClientFactory }");
-        expect(script).toContain('export const options');
-        expect(script).toContain("http_req_duration: ['p(95)<500']");
-        expect(script).toContain("http_req_failed: ['rate<0.01']");
+        expect(script).not.toContain('TestCaseBuilder');
+        expect(script).not.toContain('export const options');
         expect(script).toContain('export default function');
         expect(script).toContain("new HttpClientFactory(");
         expect(script).not.toContain('HttpClientFactory.create(');
+        expect(script).toContain('group(');
+        expect(script).toContain('sleep(');
     });
 
     it('unauthenticated script omits Authenticator import and setup', () => {
@@ -497,9 +498,11 @@ describe('Full Pipeline: OpenAPI spec → test plan → k6 scripts → Docker co
             // ── Stage 3: GENERATE ─────────────────────────────────────────
             expect(result.state.scripts).toHaveLength(2);
             const generatedScript = result.state.scripts[0].script;
-            expect(generatedScript).toContain('export const options');
+            expect(generatedScript).not.toContain('export const options');
             expect(generatedScript).toContain('export default function');
             expect(generatedScript).toContain('new HttpClientFactory(');
+            expect(generatedScript).toContain('group(');
+            expect(generatedScript).toContain('sleep(');
 
             // ── Stage 4: EXECUTE ──────────────────────────────────────────
             expect(result.state.commands).toHaveLength(2);
