@@ -109,6 +109,8 @@ jobs:
         run: ./ci-deployment -d simple-k6-test-template
       - name: Run integration tests for ws client
         run: ./ci-deployment -d simple-k6-websocket-test -s websocket-echo
+      - name: Run integration tests for agent-generated k6 script (Docker)
+        run: ./ci-deployment -d agents-pipeline-test
 
   integration-tests-k8s:
     runs-on: ubuntu-latest
