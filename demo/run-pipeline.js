@@ -140,4 +140,3 @@ if ((scripts ?? []).length > 0) {
 console.log('');
 console.log('   To run via HAR recording (browser → k6 script):');
 console.log('   node demo/run-har-pipeline.js');
-
