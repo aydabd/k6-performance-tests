@@ -22,6 +22,7 @@ const config = [
     },
     {
         files: ["src/**/*.js"],
+        ignores: ["src/agents/**/*.js"],
         languageOptions: {
             sourceType: "module",
             globals: {
@@ -36,6 +37,37 @@ const config = [
         },
     },
     {
+        files: ["src/agents/**/*.js"],
+        languageOptions: {
+            sourceType: "module",
+            globals: {
+                // Node.js globals for agent code
+                process: "readonly",
+                Buffer: "readonly",
+                console: "readonly",
+                URL: "readonly",
+                URLSearchParams: "readonly",
+            },
+        },
+    },
+    {
+        files: ["demo/**/*.js"],
+        languageOptions: {
+            sourceType: "module",
+            globals: {
+                // Node.js globals for demo scripts
+                process: "readonly",
+                Buffer: "readonly",
+                console: "readonly",
+                URL: "readonly",
+                URLSearchParams: "readonly",
+            },
+        },
+        rules: {
+            "jsdoc/require-jsdoc": "off",
+        },
+    },
+    {
         files: ["tests/**/*.js"],
         languageOptions: {
             sourceType: "module",
@@ -44,6 +76,7 @@ const config = [
                 global: "readonly",
                 Buffer: "readonly",
                 process: "readonly",
+                URL: "readonly",
             },
         },
         rules: {

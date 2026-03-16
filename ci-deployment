@@ -13,7 +13,7 @@ DEFAULT_API_SERVER="dogapi.dog"
 DEFAULT_K6_CONFIG_FILE="./k6-config-options/default-test-config.json"
 
 # Directory of test scripts
-TEST_SCRIPTS_DIR="simple-k6-test-template simple-k6-websocket-test"
+TEST_SCRIPTS_DIR="simple-k6-test-template simple-k6-websocket-test agents-pipeline-test"
 VERSION="latest"
 
 export API_SERVER="${API_SERVER:-$DEFAULT_API_SERVER}"

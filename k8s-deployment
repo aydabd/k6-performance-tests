@@ -105,7 +105,7 @@ KUBECTL_CONTEXT=${KUBECTL_CONTEXT:-rancher-desktop}
 NAMESPACE="k6-tests"
 K8S_DIR="k8s"
 TEST_DIR=""
-IMAGES=(k6-template-influxdb-base simple-k6-test-template simple-k6-websocket-test)
+IMAGES=(k6-template-influxdb-base simple-k6-test-template simple-k6-websocket-test agents-pipeline-test)
 K3D_CLUSTER_NAME=${K3D_CLUSTER_NAME:-k6}
 
 usage() {
@@ -135,13 +135,17 @@ build_images() {
     if [ "$RUN_ALL" = true ]; then
         build_test_image "simple-k6-test-template"
         build_test_image "simple-k6-websocket-test"
-        IMAGES=(k6-template-influxdb-base simple-k6-test-template simple-k6-websocket-test)
+        build_test_image "agents-pipeline-test"
+        IMAGES=(k6-template-influxdb-base simple-k6-test-template simple-k6-websocket-test agents-pipeline-test)
     elif [ "$TEST_DIR" = "simple-k6-test-template" ]; then
         build_test_image "simple-k6-test-template"
         IMAGES=(k6-template-influxdb-base simple-k6-test-template)
     elif [ "$TEST_DIR" = "simple-k6-websocket-test" ]; then
         build_test_image "simple-k6-websocket-test"
         IMAGES=(k6-template-influxdb-base simple-k6-websocket-test)
+    elif [ "$TEST_DIR" = "agents-pipeline-test" ]; then
+        build_test_image "agents-pipeline-test"
+        IMAGES=(k6-template-influxdb-base agents-pipeline-test)
     fi
 
     import_images
@@ -251,6 +255,9 @@ render_and_apply_job() {
     elif [ "$job" = "simple-k6-websocket-test" ]; then
         manifest="$K8S_DIR/k6-job-websocket.yaml"
         TEST_IMAGE_FULL="simple-k6-websocket-test:latest"
+    elif [ "$job" = "agents-pipeline-test" ]; then
+        manifest="$K8S_DIR/k6-job-agents-pipeline.yaml"
+        TEST_IMAGE_FULL="agents-pipeline-test:latest"
     else
         log_error "Unknown job: $job. Skipping."
         return 1
@@ -360,7 +367,7 @@ run_jobs_parallel() {
     set +u
     local jobs_to_run=()
     if [ "$RUN_ALL" = true ]; then
-        jobs_to_run=(simple-k6-test-template simple-k6-websocket-test)
+        jobs_to_run=(simple-k6-test-template simple-k6-websocket-test agents-pipeline-test)
     elif [ -n "${TEST_DIR:-}" ]; then
         jobs_to_run=("$TEST_DIR")
     fi
@@ -509,6 +516,8 @@ main() {
         REQUIRED_SERVICES=(influxdb grafana)
     elif [ "$TEST_DIR" = "simple-k6-websocket-test" ]; then
         REQUIRED_SERVICES=(influxdb grafana websocket-echo)
+    elif [ "$TEST_DIR" = "agents-pipeline-test" ]; then
+        REQUIRED_SERVICES=(influxdb grafana)
     else
         REQUIRED_SERVICES=(influxdb)
     fi
