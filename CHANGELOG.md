@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.0](https://github.com/aydabd/k6-performance-tests/compare/v2.4.2...v2.5.0) (2026-03-16)
+
+
+### Features
+
+* **WP-12:** Add real k6 integration test proving agent pipeline output runs in Docker and Kubernetes ([#97](https://github.com/aydabd/k6-performance-tests/issues/97)) ([687813a](https://github.com/aydabd/k6-performance-tests/commit/687813ab0a10354738ec9c6f3333bad690207f63))
+
 ## [2.4.2](https://github.com/aydabd/k6-performance-tests/compare/v2.4.1...v2.4.2) (2026-03-14)
 
 
