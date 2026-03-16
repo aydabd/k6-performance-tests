@@ -80,6 +80,25 @@ services:
     networks:
       - k6-webnet
 
+  agents-pipeline-test:
+    depends_on:
+      - k6-template-influxdb-base
+      - influxdb
+      - nginx
+    build:
+      context: .
+      dockerfile: agents-pipeline-test/Dockerfile
+    image: agents-pipeline-test:latest
+    environment:
+      - TEST_RUN_ID=${TEST_RUN_ID:-default}
+      - K6_OTEL_EXPORTER_PROTOCOL=${K6_OTEL_EXPORTER_PROTOCOL:-grpc}
+      - K6_OTEL_GRPC_EXPORTER_ENDPOINT=${K6_OTEL_GRPC_EXPORTER_ENDPOINT:-otel-collector:4317}
+      - K6_OTEL_GRPC_EXPORTER_INSECURE=${K6_OTEL_GRPC_EXPORTER_INSECURE:-true}
+    volumes:
+      - ./agents-pipeline-test/test-logs:/performance-k6/test-logs
+    networks:
+      - k6-webnet
+
   websocket-echo:
     image: jmalloc/echo-server
     ports:
