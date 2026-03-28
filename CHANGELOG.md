@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.1](https://github.com/aydabd/k6-performance-tests/compare/v2.5.0...v2.5.1) (2026-03-27)
+
+
+### Miscellaneous
+
+* bump the npm_and_yarn group across 1 directory with 2 updates ([#103](https://github.com/aydabd/k6-performance-tests/issues/103)) ([a6cf18d](https://github.com/aydabd/k6-performance-tests/commit/a6cf18df443c8b68d46415c15adf6b363d3d605c))
+
 ## [2.5.0](https://github.com/aydabd/k6-performance-tests/compare/v2.4.2...v2.5.0) (2026-03-16)
 
 
