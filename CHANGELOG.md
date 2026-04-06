@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.5.2](https://github.com/aydabd/k6-performance-tests/compare/v2.5.1...v2.5.2) (2026-04-06)
+
+
+### Miscellaneous
+
+* bump eslint from 10.1.0 to 10.2.0 ([f8a829e](https://github.com/aydabd/k6-performance-tests/commit/f8a829edd62fba6d494dfacf406f16363d2c122f))
+* bump eslint-plugin-jsdoc from 62.8.0 to 62.9.0 ([c980293](https://github.com/aydabd/k6-performance-tests/commit/c980293198cd21a3e65b45b8153caef112624c25))
+* bump vite from 8.0.3 to 8.0.5 in the npm_and_yarn group across 1 directory ([5b815dc](https://github.com/aydabd/k6-performance-tests/commit/5b815dca95e29fb612092be9927864db3d4f9545))
+* bump vite in the npm_and_yarn group across 1 directory ([5b815dc](https://github.com/aydabd/k6-performance-tests/commit/5b815dca95e29fb612092be9927864db3d4f9545))
+* bump vitest from 4.1.0 to 4.1.2 ([3cace86](https://github.com/aydabd/k6-performance-tests/commit/3cace866c19245258d3d093df2121d9ce9c966f3))
+
 ## [2.5.1](https://github.com/aydabd/k6-performance-tests/compare/v2.5.0...v2.5.1) (2026-03-27)
 
 
