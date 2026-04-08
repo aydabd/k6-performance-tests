@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.5.3](https://github.com/aydabd/k6-performance-tests/compare/v2.5.2...v2.5.3) (2026-04-08)
+
+
+### Miscellaneous
+
+* bump lodash from 4.17.23 to 4.18.1 in the npm_and_yarn group across 1 directory ([#111](https://github.com/aydabd/k6-performance-tests/issues/111)) ([70ef238](https://github.com/aydabd/k6-performance-tests/commit/70ef2381548bfa474737e262545855ad6ff5bc8a))
+* bump lodash in the npm_and_yarn group across 1 directory ([70ef238](https://github.com/aydabd/k6-performance-tests/commit/70ef2381548bfa474737e262545855ad6ff5bc8a))
+
 ## [2.5.2](https://github.com/aydabd/k6-performance-tests/compare/v2.5.1...v2.5.2) (2026-04-06)
 
 
