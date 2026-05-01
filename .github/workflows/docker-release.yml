@@ -52,7 +52,7 @@ jobs:
             -f simple-k6-test-template/Dockerfile .
           docker push ghcr.io/${{ github.repository }}/simple-k6-test-template:${{ env.RELEASE_TAG }}
       - name: Update GitHub Release with Docker images
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           append_body: true
