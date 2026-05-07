@@ -120,7 +120,8 @@ trap 'handle_error "An unexpected error occurred" 1' ERR
 
 # Build the docker images using the docker compose
 __ci_deployment_compose_build_images() {
-    docker compose build --parallel
+    docker compose build k6-template-influxdb-base || return 1
+    docker compose build simple-k6-test-template simple-k6-websocket-test agents-pipeline-test || return 1
 }
 
 # Run the external services using the docker compose before running the tests
