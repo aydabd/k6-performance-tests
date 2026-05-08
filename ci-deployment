@@ -120,8 +120,16 @@ trap 'handle_error "An unexpected error occurred" 1' ERR
 
 # Build the docker images using the docker compose
 __ci_deployment_compose_build_images() {
+    local -a test_script_dirs=()
+    IFS=' ' read -r -a test_script_dirs <<< "${TEST_SCRIPTS_DIR:-}"
+
+    if [ ${#test_script_dirs[@]} -eq 0 ]; then
+        log_error "No test script directories configured for image build"
+        return 1
+    fi
+
     docker compose build k6-template-influxdb-base || return 1
-    docker compose build simple-k6-test-template simple-k6-websocket-test agents-pipeline-test || return 1
+    docker compose build "${test_script_dirs[@]}" || return 1
 }
 
 # Run the external services using the docker compose before running the tests
