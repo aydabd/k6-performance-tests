@@ -1,6 +1,6 @@
 {
   "name": "k6-perfromance-test",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "description": "Advanced performance test using k6",
   "type": "module",
   "author": "Aydin Abdi <ayd.abd@gmail.com>",

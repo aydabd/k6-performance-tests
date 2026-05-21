@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.5.3](https://github.com/aydabd/k6-performance-tests/compare/v2.5.2...v2.5.3) (2026-05-01)
+
+
+### Miscellaneous
+
+* bump eslint from 10.2.0 to 10.2.1 ([#115](https://github.com/aydabd/k6-performance-tests/issues/115)) ([efcd2aa](https://github.com/aydabd/k6-performance-tests/commit/efcd2aa532c2260f1a2cfcf0d8849f06d82fa2f5))
+* bump lodash from 4.17.23 to 4.18.1 in the npm_and_yarn group across 1 directory ([#111](https://github.com/aydabd/k6-performance-tests/issues/111)) ([70ef238](https://github.com/aydabd/k6-performance-tests/commit/70ef2381548bfa474737e262545855ad6ff5bc8a))
+* bump lodash in the npm_and_yarn group across 1 directory ([70ef238](https://github.com/aydabd/k6-performance-tests/commit/70ef2381548bfa474737e262545855ad6ff5bc8a))
+* bump softprops/action-gh-release from 2 to 3 ([#113](https://github.com/aydabd/k6-performance-tests/issues/113)) ([47e56dc](https://github.com/aydabd/k6-performance-tests/commit/47e56dc8a57155523bcec682b2f3bf36591494b8))
+* bump vitest from 4.1.2 to 4.1.5 ([#117](https://github.com/aydabd/k6-performance-tests/issues/117)) ([e3f1d43](https://github.com/aydabd/k6-performance-tests/commit/e3f1d43808f58193cb403995be771aeffead25c7))
+
 ## [2.5.2](https://github.com/aydabd/k6-performance-tests/compare/v2.5.1...v2.5.2) (2026-04-06)
 
 
