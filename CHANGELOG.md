@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.4](https://github.com/aydabd/k6-performance-tests/compare/v2.5.3...v2.5.4) (2026-06-10)
+
+
+### Miscellaneous
+
+* bump eslint-plugin-jsdoc from 62.9.0 to 63.0.2 ([#125](https://github.com/aydabd/k6-performance-tests/issues/125)) ([c71c9e0](https://github.com/aydabd/k6-performance-tests/commit/c71c9e07b13a32e0e3bdbe5586ea9da2b8693ff0))
+
 ## [2.5.3](https://github.com/aydabd/k6-performance-tests/compare/v2.5.2...v2.5.3) (2026-05-01)
 
 
