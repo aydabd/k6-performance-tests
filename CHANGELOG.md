@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.5.5](https://github.com/aydabd/k6-performance-tests/compare/v2.5.4...v2.5.5) (2026-06-28)
+
+
+### Miscellaneous
+
+* bump actions/checkout from 6 to 7 ([#130](https://github.com/aydabd/k6-performance-tests/issues/130)) ([d1ed45a](https://github.com/aydabd/k6-performance-tests/commit/d1ed45ae1eadef8bb4378c0b747213611acedc66))
+* bump eslint from 10.3.0 to 10.6.0 ([#128](https://github.com/aydabd/k6-performance-tests/issues/128)) ([ef034eb](https://github.com/aydabd/k6-performance-tests/commit/ef034eb6580442366649c29631131d4c6797a849))
+* bump eslint-plugin-jsdoc from 63.0.2 to 63.0.7 ([#132](https://github.com/aydabd/k6-performance-tests/issues/132)) ([6001ddf](https://github.com/aydabd/k6-performance-tests/commit/6001ddfe61927dda86eff9b37fdc9ba0296a0191))
+* bump markdownlint-cli from 0.48.0 to 0.49.0 ([#133](https://github.com/aydabd/k6-performance-tests/issues/133)) ([891eeac](https://github.com/aydabd/k6-performance-tests/commit/891eeac6bcbc9cb38242f083f83031512bdc211b))
+
 ## [2.5.4](https://github.com/aydabd/k6-performance-tests/compare/v2.5.3...v2.5.4) (2026-06-10)
 
 
