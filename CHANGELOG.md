@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.5.6](https://github.com/aydabd/k6-performance-tests/compare/v2.5.5...v2.5.6) (2026-07-02)
+
+
+### Miscellaneous
+
+* bump actions/cache from 5 to 6 ([#135](https://github.com/aydabd/k6-performance-tests/issues/135)) ([646d0d0](https://github.com/aydabd/k6-performance-tests/commit/646d0d0d2f775d669082486796ee8dc344f9d39b))
+* bump eslint-plugin-jsdoc from 63.0.7 to 63.0.10 ([#136](https://github.com/aydabd/k6-performance-tests/issues/136)) ([4a68163](https://github.com/aydabd/k6-performance-tests/commit/4a681638f86cd42f87878881f1981c1638805290))
+
 ## [2.5.5](https://github.com/aydabd/k6-performance-tests/compare/v2.5.4...v2.5.5) (2026-06-28)
 
 
