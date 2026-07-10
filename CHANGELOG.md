@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.5.7](https://github.com/aydabd/k6-performance-tests/compare/v2.5.6...v2.5.7) (2026-07-10)
+
+
+### Miscellaneous
+
+* bump eslint-plugin-jsdoc from 63.0.10 to 63.0.12 ([#138](https://github.com/aydabd/k6-performance-tests/issues/138)) ([31689f0](https://github.com/aydabd/k6-performance-tests/commit/31689f0a8adbdf05d2d16c21cb4d38be90667e7d))
+* bump googleapis/release-please-action from 4 to 5 ([#116](https://github.com/aydabd/k6-performance-tests/issues/116)) ([e175b50](https://github.com/aydabd/k6-performance-tests/commit/e175b503c29d56f1f1c22317eaa2aa6c0f11d6b0))
+* bump vite from 8.0.10 to 8.1.3 in the npm_and_yarn group across 1 directory ([#129](https://github.com/aydabd/k6-performance-tests/issues/129)) ([e65d7b8](https://github.com/aydabd/k6-performance-tests/commit/e65d7b8d37f1131769fe5b8c9d108191ec850bb6))
+* bump vite in the npm_and_yarn group across 1 directory ([e65d7b8](https://github.com/aydabd/k6-performance-tests/commit/e65d7b8d37f1131769fe5b8c9d108191ec850bb6))
+* bump vitest from 4.1.5 to 4.1.9 ([#131](https://github.com/aydabd/k6-performance-tests/issues/131)) ([d1b8334](https://github.com/aydabd/k6-performance-tests/commit/d1b83348a7f331421ec73b95980c988c17f56080))
+
 ## [2.5.6](https://github.com/aydabd/k6-performance-tests/compare/v2.5.5...v2.5.6) (2026-07-02)
 
 
