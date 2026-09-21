@@ -24,9 +24,9 @@
 # 1. Build the base image with the necessary k6 extension. Example:
 #    docker build -t k6-template-influxdb-base:latest . \
 #                   --build-arg XK6_VERSION=latest \
-#                   --build-arg K6_VERSION=latest \
+#                   --build-arg K6_VERSION=v1.0.0 \
 #                   --build-arg XK6_EXTENSION_NAME=xk6-output-influxdb \
-#                   --build-arg XK6_EXTENSION_VERSION=latest
+#                   --build-arg XK6_EXTENSION_VERSION=v0.7.0
 #
 #    This builds a base image with the necessary k6 extension for running k6 performance tests.
 #
@@ -86,11 +86,13 @@ ARG ALPINE_VERSION=3.20
 # Use the grafana/xk6 as the base image to build k6 with extension
 FROM ${XK6_IMAGE}:${XK6_VERSION} AS builder
 
-# Set ARGs to allow overriding variables during build phase
-ARG K6_VERSION="latest"
+# xk6-output-influxdb v0.7.0 uses the k6 v1 output API and does not register
+# against newer k6 releases. Keep these versions paired until the extension
+# supports the k6 v2 module path.
+ARG K6_VERSION="v1.0.0"
 ARG SOURCE_URL="github.com/grafana"
 ARG XK6_EXTENSION_NAME="xk6-output-influxdb"
-ARG XK6_EXTENSION_VERSION="latest"
+ARG XK6_EXTENSION_VERSION="v0.7.0"
 
 # Set the working directory to /xk6
 WORKDIR /xk6
