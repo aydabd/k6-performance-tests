@@ -1,5 +1,7 @@
 # syntax=docker/dockerfile:1
-FROM k6-template-influxdb-base:2.2.0
+ARG BASE_IMAGE_NAME="k6-template-influxdb-base"
+ARG BASE_IMAGE_VERSION="2.2.0"
+FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_VERSION}
 
 ARG WORK_DIR=/performance-k6
 ENV API_SERVER=dogapi.dog \
