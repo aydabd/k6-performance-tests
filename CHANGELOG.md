@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.1](https://github.com/aydabd/k6-performance-tests/compare/v2.6.0...v2.6.1) (2026-09-22)
+
+
+### Bug Fixes
+
+* use release base image in Docker build ([#161](https://github.com/aydabd/k6-performance-tests/issues/161)) ([b570cfe](https://github.com/aydabd/k6-performance-tests/commit/b570cfeb0ccbdeeb1b56b19f0087d330ff661a4d))
+
 ## [2.6.0](https://github.com/aydabd/k6-performance-tests/compare/v2.5.6...v2.6.0) (2026-09-22)
 
 
