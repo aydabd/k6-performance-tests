@@ -16,22 +16,43 @@ spec:
     spec:
       containers:
         - name: influxdb
-          image: influxdb:latest
+          image: influxdb:2.7.12
           env:
             - name: DOCKER_INFLUXDB_INIT_MODE
               value: "setup"
             - name: DOCKER_INFLUXDB_INIT_USERNAME
-              value: "k6test"
+              valueFrom:
+                secretKeyRef:
+                  name: k6-influxdb-credentials
+                  key: username
             - name: DOCKER_INFLUXDB_INIT_PASSWORD
-              value: "k6testme"
+              valueFrom:
+                secretKeyRef:
+                  name: k6-influxdb-credentials
+                  key: password
             - name: DOCKER_INFLUXDB_INIT_ORG
-              value: "k6testorg"
+              valueFrom:
+                secretKeyRef:
+                  name: k6-influxdb-credentials
+                  key: org
             - name: DOCKER_INFLUXDB_INIT_BUCKET
-              value: "simple-k6-tests"
+              valueFrom:
+                secretKeyRef:
+                  name: k6-influxdb-credentials
+                  key: bucket
             - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
-              value: "y3zTEWhDLPfa05-op-gKftVHhbEkmNL98uijqokTMr_JHdlK59PpitKl6QdXNF3YQVrLXdtTdjISNSqWtFwbFw=="
+              valueFrom:
+                secretKeyRef:
+                  name: k6-influxdb-credentials
+                  key: token
           ports:
             - containerPort: 8086
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8086
+            periodSeconds: 5
+            failureThreshold: 12
           volumeMounts:
             - name: influxdb-data
               mountPath: /var/lib/influxdb2

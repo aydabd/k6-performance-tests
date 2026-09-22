@@ -75,6 +75,17 @@ log_success() { _log "SUCCESS" "$@"; }
 log_warning() { _log "WARNING" "$@"; }
 
 ################################################################################
+# require_envsubst
+#   Ensure gettext's envsubst command is available before rendering manifests.
+################################################################################
+require_envsubst() {
+    if ! command -v envsubst >/dev/null 2>&1; then
+        log_error "envsubst is required to render Kubernetes manifests. Install gettext and retry."
+        exit 127
+    fi
+}
+
+################################################################################
 # handle_error
 #   Generic error handler for trapping errors.
 #   Args:
@@ -107,6 +118,13 @@ K8S_DIR="k8s"
 TEST_DIR=""
 IMAGES=(k6-template-influxdb-base simple-k6-test-template simple-k6-websocket-test agents-pipeline-test)
 K3D_CLUSTER_NAME=${K3D_CLUSTER_NAME:-k6}
+IMAGE_TAG=${IMAGE_TAG:-2.2.0}
+export INFLUXDB_USERNAME="${INFLUXDB_USERNAME:-k6test}"
+export INFLUXDB_PASSWORD="${INFLUXDB_PASSWORD:-k6test-password}"
+export INFLUXDB_ORG="${INFLUXDB_ORG:-k6testorg}"
+export INFLUXDB_BUCKET="${INFLUXDB_BUCKET:-simple-k6-tests}"
+export INFLUXDB_TOKEN="${INFLUXDB_TOKEN:-test-token}"
+export TEST_RUN_ID="${TEST_RUN_ID:-k8s-$(date -u +%Y%m%dT%H%M%SZ)}"
 
 usage() {
     cat <<USAGE
@@ -130,7 +148,7 @@ USAGE
 ################################################################################
 build_images() {
     log_info "Building k6-template-influxdb-base image..."
-    docker build -t k6-template-influxdb-base:latest -f Dockerfile .
+    docker build -t k6-template-influxdb-base:"$IMAGE_TAG" -f Dockerfile .
 
     if [ "$RUN_ALL" = true ]; then
         build_test_image "simple-k6-test-template"
@@ -160,7 +178,7 @@ build_images() {
 build_test_image() {
     local test_name="$1"
     log_info "Building $test_name image..."
-    docker build -t "$test_name:latest" -f "$test_name/Dockerfile" .
+    docker build -t "$test_name:$IMAGE_TAG" -f "$test_name/Dockerfile" .
 }
 
 
@@ -171,7 +189,7 @@ build_test_image() {
 import_images() {
     if command -v k3d >/dev/null 2>&1; then
         for image in "${IMAGES[@]}"; do
-            k3d image import "${image}:latest" -c "$K3D_CLUSTER_NAME" || true
+            k3d image import "${image}:$IMAGE_TAG" -c "$K3D_CLUSTER_NAME" || true
         done
     elif command -v nerdctl >/dev/null 2>&1; then
         # Try common Rancher Desktop containerd socket paths
@@ -186,8 +204,8 @@ import_images() {
             log_error "Could not find a valid containerd socket for nerdctl."
         else
             for image in "${IMAGES[@]}"; do
-                log_info "Importing $image:latest into Rancher Desktop containerd using $NERDCTL_SOCKET..."
-                docker save "${image}:latest" | nerdctl --namespace k8s.io --address "$NERDCTL_SOCKET" load || true
+                log_info "Importing $image:$IMAGE_TAG into Rancher Desktop containerd using $NERDCTL_SOCKET..."
+                docker save "${image}:$IMAGE_TAG" | nerdctl --namespace k8s.io --address "$NERDCTL_SOCKET" load || true
             done
         fi
     elif docker info 2>&1 | grep -q 'Rancher Desktop'; then
@@ -212,11 +230,33 @@ apply_manifests() {
         log_info "Ensuring namespace exists: $K8S_DIR/namespace.yaml"
         kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -f "$K8S_DIR/namespace.yaml"
     fi
+    if [ -f "$K8S_DIR/influxdb-secret.yaml" ]; then
+        log_info "Applying $K8S_DIR/influxdb-secret.yaml"
+        envsubst < "$K8S_DIR/influxdb-secret.yaml" | kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -f -
+    fi
+    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" create configmap grafana-datasource \
+        --from-file=datasource.yml=grafana/datasources/datasource.yml \
+        -n "$NAMESPACE" --dry-run=client -o yaml | kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -f -
+    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" create configmap grafana-dashboard-provider \
+        --from-file=dashboard.yml=grafana/dashboards/dashboard.yml \
+        -n "$NAMESPACE" --dry-run=client -o yaml | kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -f -
+    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" create configmap grafana-dashboards \
+        --from-file=k6-performance-dashboard.json=grafana/dashboards/k6-performance-dashboard.json \
+        --from-file=k6-performance-dynamic-endpoints-dashboard.json=grafana/dashboards/k6-performance-dynamic-endpoints-dashboard.json \
+        --from-file=k6-business-flow-dashboard.json=grafana/dashboards/k6-business-flow-dashboard.json \
+        -n "$NAMESPACE" --dry-run=client -o yaml | kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -f -
+    kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" create configmap grafana-tempo-config \
+        --from-file=config.yaml=grafana/tempo/tempo-config.yaml \
+        -n "$NAMESPACE" --dry-run=client -o yaml | kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -f -
     local services=("${REQUIRED_SERVICES[@]}")
     for svc in "${services[@]}"; do
-        if [ -f "$K8S_DIR/${svc}.yaml" ]; then
-            log_info "Applying $K8S_DIR/${svc}.yaml"
-            kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -f "$K8S_DIR/${svc}.yaml"
+        local manifest="$K8S_DIR/${svc}.yaml"
+        if [ "$svc" = "grafana-tempo" ]; then
+            manifest="$K8S_DIR/tempo.yaml"
+        fi
+        if [ -f "$manifest" ]; then
+            log_info "Applying $manifest"
+            kubectl --kubeconfig="$KUBECONFIG_LOCAL" --context="$KUBECTL_CONTEXT" apply -f "$manifest"
         else
             log_warning "Manifest $K8S_DIR/${svc}.yaml not found, skipping."
         fi
@@ -251,13 +291,13 @@ render_and_apply_job() {
     local manifest=""
     if [ "$job" = "simple-k6-test-template" ]; then
         manifest="$K8S_DIR/k6-job-simple.yaml"
-        TEST_IMAGE_FULL="simple-k6-test-template:latest"
+        TEST_IMAGE_FULL="simple-k6-test-template:$IMAGE_TAG"
     elif [ "$job" = "simple-k6-websocket-test" ]; then
         manifest="$K8S_DIR/k6-job-websocket.yaml"
-        TEST_IMAGE_FULL="simple-k6-websocket-test:latest"
+        TEST_IMAGE_FULL="simple-k6-websocket-test:$IMAGE_TAG"
     elif [ "$job" = "agents-pipeline-test" ]; then
         manifest="$K8S_DIR/k6-job-agents-pipeline.yaml"
-        TEST_IMAGE_FULL="agents-pipeline-test:latest"
+        TEST_IMAGE_FULL="agents-pipeline-test:$IMAGE_TAG"
     else
         log_error "Unknown job: $job. Skipping."
         return 1
@@ -511,17 +551,18 @@ main() {
 
     # Determine required services for the selected test(s)
     if [ "$RUN_ALL" = true ]; then
-        REQUIRED_SERVICES=(influxdb grafana websocket-echo)
+        REQUIRED_SERVICES=(influxdb grafana otel-collector grafana-tempo websocket-echo)
     elif [ "$TEST_DIR" = "simple-k6-test-template" ]; then
-        REQUIRED_SERVICES=(influxdb grafana)
+        REQUIRED_SERVICES=(influxdb grafana otel-collector grafana-tempo)
     elif [ "$TEST_DIR" = "simple-k6-websocket-test" ]; then
-        REQUIRED_SERVICES=(influxdb grafana websocket-echo)
+        REQUIRED_SERVICES=(influxdb grafana otel-collector grafana-tempo websocket-echo)
     elif [ "$TEST_DIR" = "agents-pipeline-test" ]; then
-        REQUIRED_SERVICES=(influxdb grafana)
+        REQUIRED_SERVICES=(influxdb grafana otel-collector grafana-tempo)
     else
-        REQUIRED_SERVICES=(influxdb)
+        REQUIRED_SERVICES=(influxdb otel-collector grafana-tempo)
     fi
 
+    require_envsubst
     build_images
     apply_manifests
 

@@ -38,7 +38,7 @@
       "type": "timeseries",
       "targets": [
         {
-          "query": "from(bucket: \"simple-k6-tests\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"http_req_duration\" and r.testRunId == \"${testRunId}\") |> group(columns: [\"businessFlow\"])"
+          "query": "from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"http_req_duration\" and r.testRunId == \"${testRunId}\") |> group(columns: [\"businessFlow\"])"
         }
       ]
     },
@@ -66,7 +66,7 @@
       "type": "timeseries",
       "targets": [
         {
-          "query": "from(bucket: \"simple-k6-tests\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"iterations\" and r.testRunId == \"${testRunId}\") |> group(columns: [\"businessFlow\"])"
+          "query": "from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"iterations\" and r.testRunId == \"${testRunId}\") |> group(columns: [\"businessFlow\"])"
         }
       ]
     },
@@ -94,7 +94,7 @@
       "type": "timeseries",
       "targets": [
         {
-          "query": "from(bucket: \"simple-k6-tests\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"http_req_failed\" and r.testRunId == \"${testRunId}\") |> group(columns: [\"businessFlow\"])"
+          "query": "from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"http_req_failed\" and r.testRunId == \"${testRunId}\") |> group(columns: [\"businessFlow\"])"
         }
       ]
     }
@@ -113,13 +113,13 @@
           "text": "default",
           "value": "default"
         },
-        "definition": "from(bucket: \"simple-k6-tests\") |> range(start: -7d) |> keep(columns: [\"testRunId\"]) |> distinct(column: \"testRunId\")",
+        "definition": "from(bucket: v.defaultBucket) |> range(start: -7d) |> keep(columns: [\"testRunId\"]) |> distinct(column: \"testRunId\")",
         "name": "testRunId",
         "type": "query",
         "datasource": {
           "type": "influxdb"
         },
-        "query": "from(bucket: \"simple-k6-tests\") |> range(start: -7d) |> keep(columns: [\"testRunId\"]) |> distinct(column: \"testRunId\")",
+        "query": "from(bucket: v.defaultBucket) |> range(start: -7d) |> keep(columns: [\"testRunId\"]) |> distinct(column: \"testRunId\")",
         "refresh": 1,
         "sort": 1
       }

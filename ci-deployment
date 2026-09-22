@@ -8,15 +8,21 @@
 # ./ci-deployment -h
 #############################################################################################
 
-EXTERNAL_SERVICES="grafana influxdb nginx"
+EXTERNAL_SERVICES="grafana influxdb otel-collector otel-collector-ready grafana-tempo nginx"
 DEFAULT_API_SERVER="dogapi.dog"
 DEFAULT_K6_CONFIG_FILE="./k6-config-options/default-test-config.json"
 
 # Directory of test scripts
 TEST_SCRIPTS_DIR="simple-k6-test-template simple-k6-websocket-test agents-pipeline-test"
-VERSION="latest"
+VERSION="2.2.0"
 
 export API_SERVER="${API_SERVER:-$DEFAULT_API_SERVER}"
+export INFLUXDB_USERNAME="${INFLUXDB_USERNAME:-k6test}"
+export INFLUXDB_PASSWORD="${INFLUXDB_PASSWORD:-k6test-password}"
+export INFLUXDB_ORG="${INFLUXDB_ORG:-k6testorg}"
+export INFLUXDB_BUCKET="${INFLUXDB_BUCKET:-simple-k6-tests}"
+export INFLUXDB_TOKEN="${INFLUXDB_TOKEN:-test-token}"
+export TEST_RUN_ID="${TEST_RUN_ID:-ci-$(date -u +%Y%m%dT%H%M%SZ)}"
 
 # Usage of the ci-deployment
 __ci_deployment_usage() {
@@ -103,6 +109,8 @@ handle_error() {
     local exit_code="${2:-1}"
     local should_exit="${3:-true}"
     log_error "$error_message"
+    docker compose ps >&2 || true
+    docker compose logs --no-color --tail=200 otel-collector influxdb grafana >&2 || true
     if [ -n "${DEBUG:-}" ]; then
         echo "Stack trace:" >&2
         local frame=0

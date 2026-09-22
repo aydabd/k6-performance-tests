@@ -28,6 +28,6 @@ spec:
     spec:
       containers:
         - name: websocket-echo
-          image: jmalloc/echo-server:latest
+          image: jmalloc/echo-server:0.3.6
           ports:
             - containerPort: 8080

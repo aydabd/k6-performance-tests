@@ -16,19 +16,33 @@ data:
       batch:
         timeout: 5s
         send_batch_size: 1024
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
     exporters:
+      influxdb:
+        endpoint: ${env:INFLUXDB_URL}
+        org: ${env:INFLUXDB_ORG}
+        bucket: ${env:INFLUXDB_BUCKET}
+        token: ${env:INFLUXDB_TOKEN}
+        metrics_schema: telegraf-prometheus-v1
+      otlp/tempo:
+        endpoint: grafana-tempo:4317
+        tls:
+          insecure: true
       debug:
         verbosity: basic
     service:
+      extensions: [health_check]
       pipelines:
         traces:
           receivers: [otlp]
           processors: [batch]
-          exporters: [debug]
+          exporters: [otlp/tempo, debug]
         metrics:
           receivers: [otlp]
           processors: [batch]
-          exporters: [debug]
+          exporters: [influxdb, debug]
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -47,10 +61,35 @@ spec:
     spec:
       containers:
         - name: otel-collector
-          image: otel/opentelemetry-collector-contrib:latest
+          image: otel/opentelemetry-collector-contrib:0.161.0
+          env:
+            - name: INFLUXDB_URL
+              value: http://influxdb:8086
+            - name: INFLUXDB_ORG
+              valueFrom:
+                secretKeyRef:
+                  name: k6-influxdb-credentials
+                  key: org
+            - name: INFLUXDB_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: k6-influxdb-credentials
+                  key: bucket
+            - name: INFLUXDB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: k6-influxdb-credentials
+                  key: token
           ports:
             - containerPort: 4317
             - containerPort: 4318
+            - containerPort: 13133
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            periodSeconds: 5
+            failureThreshold: 12
           volumeMounts:
             - name: config
               mountPath: /etc/otelcol-contrib/config.yaml

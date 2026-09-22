@@ -1,67 +1,95 @@
-/**
- * WebSocket test script
- *
- * This script tests a WebSocket connection to a local echo server.
- * The echo server is hosted by a local WebSocket echo server (see compose.yaml).
- * The script connects to the echo server and sends a message.
- * It also listens for incoming messages and logs them.
- * The script uses the WebSocketClient class from the ws-client.js module.
- * The script uses the setTimeout function, which is globally available in k6 as defined by standard WebAPIs.
- * The script uses the sleep function from the k6 module.
- * @example
- * ```bash
- * k6 run websocket-test.js
- * ```
- * @author Aydin Abdi <ayd.abd@gmail.com>
- * @license MIT
- */
-import { WebSocketClient } from '../src/clients/ws-client.js';
-
-// Environment variables
-const K6_API_SERVER = (__ENV.API_SERVER || 'websocket-echo'); // eslint-disable-line no-undef
+/* global __ENV, setTimeout, clearTimeout */
 
 /**
- * Main test
+ * Deterministic WebSocket echo test for the current k6 WebSocket API.
+ * @module websocket-test
  */
-export default function () {
+import { check, fail } from 'k6';
+import { WebSocket } from 'k6/websockets';
 
-    // ################ Local echo server test ################
-    console.log(`Test a WebSocket connection to ${K6_API_SERVER}`); // eslint-disable-line no-undef
-    const wsOptEcho = {
-        host: K6_API_SERVER,
-        port: 8080,
-        protocol: 'ws',
+const K6_API_SERVER = typeof __ENV === 'undefined' ? 'websocket-echo' : (__ENV.API_SERVER || 'websocket-echo');
+const DEFAULT_MESSAGE = 'deterministic-echo';
+const DEFAULT_TIMEOUT_MS = 5000;
+
+/**
+ * Run one WebSocket echo exchange and report its outcome after close.
+ * @param {object} options - Exchange options.
+ * @param {Function} options.WebSocketConstructor - WebSocket implementation.
+ * @param {string} options.url - WebSocket URL.
+ * @param {string} options.message - Expected echo payload.
+ * @param {number} options.timeoutMs - Maximum time to wait for the echo.
+ * @param {Function} options.onResult - Outcome callback.
+ * @returns {object} The created WebSocket.
+ */
+export function runWebSocketExchange({
+    WebSocketConstructor,
+    url,
+    message = DEFAULT_MESSAGE,
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    onResult = () => {},
+}) {
+    const result = { connected: false, echoed: false, timedOut: false, closeFailed: false };
+    let timer;
+    let reported = false;
+    const socket = new WebSocketConstructor(url);
+
+    const report = () => {
+        if (!reported) {
+            reported = true;
+            onResult({ ...result });
+        }
     };
 
-    const ws2 = new WebSocketClient(wsOptEcho);
-    console.log(`WebSocketClient: ${JSON.stringify(ws2.params)}`); // eslint-disable-line no-undef
-    ws2.addEventListener('open', () => {
-        console.log('WebSocket connection opened'); // eslint-disable-line no-undef
-        const testMessage = 'Hello WebSocket Echo!';
-        let receivedEcho = false;
-        ws2.send(testMessage);
-        ws2.addEventListener('message', (event) => {
-            if (event.data === testMessage) {
-                receivedEcho = true;
-                console.log(`Received echo: ${event.data}`); // eslint-disable-line no-undef
-            }
-        });
-        ws2.addEventListener('error', (event) => {
-            console.error('WebSocket error:', event); // eslint-disable-line no-undef
-        });
-        // Set a timeout to close the WebSocket after 5 seconds
-        console.log('Setting timeout to close WebSocket after 5 seconds'); // eslint-disable-line no-undef
-        let timeout1 = setTimeout(() => { // eslint-disable-line no-undef
-            ws2.close();
-        }, 5000);
-        ws2.addEventListener('close', () => {
-            ws2.clTimeout(timeout1);
-            if (receivedEcho) {
-                console.log('✅ Echo assertion passed: received expected message'); // eslint-disable-line no-undef
-            } else {
-                console.error('❌ Echo assertion failed: did not receive expected message'); // eslint-disable-line no-undef
-            }
-            console.log('WebSocket is closed'); // eslint-disable-line no-undef
-        });
+    socket.addEventListener('open', () => {
+        result.connected = true;
+        socket.send(message);
+        timer = setTimeout(() => {
+            result.timedOut = true;
+            socket.close(1000, 'echo timeout');
+        }, timeoutMs);
     });
+
+    socket.addEventListener('message', (event) => {
+        result.echoed = event.data === message;
+        clearTimeout(timer);
+        socket.close(1000, result.echoed ? 'echo complete' : 'echo mismatch');
+    });
+
+    socket.addEventListener('error', () => {
+        clearTimeout(timer);
+        result.closeFailed = true;
+        report();
+    });
+
+    socket.addEventListener('close', (event) => {
+        clearTimeout(timer);
+        result.closeFailed = event.code !== 1000 || !result.echoed;
+        report();
+    });
+
+    return socket;
+}
+
+/**
+ * Execute the k6 WebSocket scenario.
+ * @returns {void}
+ */
+export default function () {
+    const webSocket = runWebSocketExchange({
+        WebSocketConstructor: WebSocket,
+        url: `ws://${K6_API_SERVER}:8080`,
+        onResult: (outcome) => {
+            const passed = check(outcome, {
+                'WebSocket connection opened': (value) => value.connected,
+                'WebSocket echo matched': (value) => value.echoed,
+                'WebSocket exchange did not time out': (value) => !value.timedOut,
+                'WebSocket closed cleanly': (value) => !value.closeFailed,
+            });
+            if (!passed) {
+                fail(`WebSocket exchange failed: ${JSON.stringify(outcome)}`);
+            }
+        },
+    });
+
+    return webSocket;
 }

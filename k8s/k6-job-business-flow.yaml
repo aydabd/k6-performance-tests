@@ -12,26 +12,17 @@ spec:
       restartPolicy: Never
       containers:
         - name: k6-business-flow
-          image: business-flow-template:latest
+          image: business-flow-template:2.2.0
           imagePullPolicy: IfNotPresent
           env:
             - name: BUSINESS_FLOW_NAME
               value: "default-flow"
             - name: TEST_RUN_ID
-              value: "default"
-            - name: K6_INFLUXDB_ORGANIZATION
-              value: "k6testorg"
-            - name: K6_INFLUXDB_BUCKET
-              value: "simple-k6-tests"
-            - name: K6_INFLUXDB_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: k6-influxdb-token
-                  key: token
-            - name: K6_INFLUXDB_ADDR
-              value: "http://influxdb:8086"
+              value: "${TEST_RUN_ID}"
             - name: K6_OTEL_EXPORTER_PROTOCOL
               value: "grpc"
+            - name: K6_TAGS
+              value: "testRunId:${TEST_RUN_ID}"
             - name: K6_OTEL_GRPC_EXPORTER_ENDPOINT
               value: "otel-collector:4317"
             - name: K6_OTEL_GRPC_EXPORTER_INSECURE
