@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: grafana
-          image: grafana/grafana-enterprise:latest
+          image: grafana/grafana-enterprise:13.2.2
           env:
             - name: GF_AUTH_ANONYMOUS_ORG_ROLE
               value: "Admin"
@@ -24,8 +24,55 @@ spec:
               value: "true"
             - name: GF_AUTH_BASIC_ENABLED
               value: "false"
+            - name: INFLUXDB_ORG
+              valueFrom:
+                secretKeyRef:
+                  name: k6-influxdb-credentials
+                  key: org
+            - name: INFLUXDB_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: k6-influxdb-credentials
+                  key: bucket
+            - name: INFLUXDB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: k6-influxdb-credentials
+                  key: token
           ports:
             - containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            periodSeconds: 5
+            failureThreshold: 12
+          volumeMounts:
+            - name: datasource
+              mountPath: /etc/grafana/provisioning/datasources/datasource.yml
+              subPath: datasource.yml
+            - name: dashboard-provider
+              mountPath: /etc/grafana/provisioning/dashboards/dashboard.yml
+              subPath: dashboard.yml
+            - name: dashboards
+              mountPath: /etc/grafana/provisioning/dashboards/k6-performance-dashboard.json
+              subPath: k6-performance-dashboard.json
+            - name: dashboards
+              mountPath: /etc/grafana/provisioning/dashboards/k6-performance-dynamic-endpoints-dashboard.json
+              subPath: k6-performance-dynamic-endpoints-dashboard.json
+            - name: dashboards
+              mountPath: /etc/grafana/provisioning/dashboards/k6-business-flow-dashboard.json
+              subPath: k6-business-flow-dashboard.json
+      volumes:
+        - name: datasource
+          configMap:
+            name: grafana-datasource
+        - name: dashboard-provider
+          configMap:
+            name: grafana-dashboard-provider
+        - name: dashboards
+          configMap:
+            name: grafana-dashboards
 ---
 apiVersion: v1
 kind: Service

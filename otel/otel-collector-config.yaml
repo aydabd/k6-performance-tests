@@ -6,12 +6,22 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
 
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
 processors:
   batch:
     timeout: 5s
     send_batch_size: 1024
 
 exporters:
+  influxdb:
+    endpoint: ${env:INFLUXDB_URL}
+    org: ${env:INFLUXDB_ORG}
+    bucket: ${env:INFLUXDB_BUCKET}
+    token: ${env:INFLUXDB_TOKEN}
+    metrics_schema: telegraf-prometheus-v1
   otlp/tempo:
     endpoint: grafana-tempo:4317
     tls:
@@ -20,6 +30,7 @@ exporters:
     verbosity: basic
 
 service:
+  extensions: [health_check]
   pipelines:
     traces:
       receivers: [otlp]
@@ -28,4 +39,4 @@ service:
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug]
+      exporters: [influxdb, debug]

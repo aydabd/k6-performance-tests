@@ -111,7 +111,7 @@
           "datasource": {
             "type": "influxdb"
           },
-          "query": "from(bucket: v.defaultBucket)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"http_req_duration\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\r\n  |> filter(fn: (r) => r[\"name\"] == \"${endpoint}\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\"])\r\n  |> yield(name: \"mean\")\r\n\r\nfrom(bucket: v.defaultBucket)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"http_req_duration\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\r\n  |> filter(fn: (r) => r[\"name\"] == \"${endpoint}\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\"])\r\n  |> yield(name: \"max\")",
+          "query": "from(bucket: v.defaultBucket)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"http_req_duration\")\r\n  |> filter(fn: (r) => r[\"name\"] == \"${endpoint}\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\"])\r\n  |> yield(name: \"mean\")\r\n\r\nfrom(bucket: v.defaultBucket)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"http_req_duration\")\r\n  |> filter(fn: (r) => r[\"name\"] == \"${endpoint}\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\r\n  |> keep(columns: [\"_value\", \"_time\"])\r\n  |> yield(name: \"max\")",
           "refId": "A"
         }
       ],
@@ -194,7 +194,7 @@
           "datasource": {
             "type": "influxdb"
           },
-          "query": "from(bucket: v.defaultBucket)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"http_req_duration\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\r\n  |> filter(fn: (r) => r[\"name\"] == \"${endpoint}\")\r\n  |> group(columns: [\"_measurement\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\r\n  |> top(columns: [\"_value\"], n: 20)\r\n  |> keep(columns: [\"name\", \"status\", \"_measurement\", \"_value\"])\r\n  |> yield(name: \"Top Slowest Request Duration\")",
+          "query": "from(bucket: v.defaultBucket)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"http_req_duration\")\r\n  |> filter(fn: (r) => r[\"name\"] == \"${endpoint}\")\r\n  |> group(columns: [\"_measurement\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\r\n  |> top(columns: [\"_value\"], n: 20)\r\n  |> keep(columns: [\"name\", \"status\", \"_measurement\", \"_value\"])\r\n  |> yield(name: \"Top Slowest Request Duration\")",
           "refId": "A"
         }
       ],

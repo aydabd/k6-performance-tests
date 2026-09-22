@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana-tempo
+  namespace: k6-tests
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana-tempo
+  template:
+    metadata:
+      labels:
+        app: grafana-tempo
+    spec:
+      containers:
+        - name: grafana-tempo
+          image: grafana/tempo:3.0.3
+          args: ["-config.file=/etc/tempo/config.yaml"]
+          ports:
+            - containerPort: 3200
+            - containerPort: 4317
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3200
+            periodSeconds: 5
+            failureThreshold: 12
+          volumeMounts:
+            - name: config
+              mountPath: /etc/tempo/config.yaml
+              subPath: config.yaml
+      volumes:
+        - name: config
+          configMap:
+            name: grafana-tempo-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-tempo
+  namespace: k6-tests
+spec:
+  selector:
+    app: grafana-tempo
+  ports:
+    - name: http
+      port: 3200
+      targetPort: 3200
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317

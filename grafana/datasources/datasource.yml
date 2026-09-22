@@ -6,12 +6,11 @@ datasources:
     url: http://influxdb:8086
     isDefault: true
     secureJsonData:
-      # This is the same token as the influxdb api token. Check the compose.yaml file
-      token: y3zTEWhDLPfa05-op-gKftVHhbEkmNL98uijqokTMr_JHdlK59PpitKl6QdXNF3YQVrLXdtTdjISNSqWtFwbFw==
+      token: $__env{INFLUXDB_TOKEN}
     jsonData:
       version: Flux
-      organization: k6testorg
-      defaultBucket: simple-k6-tests
+      organization: $__env{INFLUXDB_ORG}
+      defaultBucket: $__env{INFLUXDB_BUCKET}
       maxSeries: 10000
   - name: Tempo
     type: tempo
