@@ -12,7 +12,7 @@ describe('Docker release contract', () => {
         const dockerfile = fs.readFileSync(dockerfilePath, 'utf8');
 
         expect(dockerfile).toMatch(
-            /ARG BASE_IMAGE_NAME=.*\nARG BASE_IMAGE_VERSION=.*\nFROM \$\{BASE_IMAGE_NAME\}:\$\{BASE_IMAGE_VERSION\}/,
+            /ARG BASE_IMAGE_NAME=.*\r?\nARG BASE_IMAGE_VERSION=.*\r?\nFROM \$\{BASE_IMAGE_NAME\}:\$\{BASE_IMAGE_VERSION\}/,
         );
     });
 });
