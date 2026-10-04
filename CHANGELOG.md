@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.6.2](https://github.com/aydabd/k6-performance-tests/compare/v2.6.1...v2.6.2) (2026-10-04)
+
+
+### Miscellaneous
+
+* bump eslint from 10.10.0 to 10.11.0 ([#164](https://github.com/aydabd/k6-performance-tests/issues/164)) ([316878c](https://github.com/aydabd/k6-performance-tests/commit/316878c83057c91e176eb01292d6a51d560aa72d))
+* bump eslint-plugin-jsdoc from 64.5.2 to 65.0.1 ([#163](https://github.com/aydabd/k6-performance-tests/issues/163)) ([113f737](https://github.com/aydabd/k6-performance-tests/commit/113f7376ddf01f40ac924f9c8a5fd6f7f85fdf9e))
+* bump the npm_and_yarn group across 1 directory with 2 updates ([#167](https://github.com/aydabd/k6-performance-tests/issues/167)) ([934d172](https://github.com/aydabd/k6-performance-tests/commit/934d1727c5e7bfc2a059b48382a3d1b610b6fc20))
+
 ## [2.6.1](https://github.com/aydabd/k6-performance-tests/compare/v2.6.0...v2.6.1) (2026-09-22)
 
 
