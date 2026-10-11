@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM grafana/k6:2.2.0
+FROM grafana/k6:2.3.0
 
 ARG WORK_DIR=/performance-k6
 ARG K6_CONFIG_DIR=/performance-k6/k6-config-options
