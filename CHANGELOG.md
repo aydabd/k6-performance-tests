@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.6.2](https://github.com/aydabd/k6-performance-tests/compare/v2.6.1...v2.6.2) (2026-10-27)
+
+
+### Miscellaneous
+
+* bump eslint from 10.10.0 to 10.11.0 ([#164](https://github.com/aydabd/k6-performance-tests/issues/164)) ([316878c](https://github.com/aydabd/k6-performance-tests/commit/316878c83057c91e176eb01292d6a51d560aa72d))
+* bump eslint from 10.11.0 to 10.13.0 ([#175](https://github.com/aydabd/k6-performance-tests/issues/175)) ([4224f6b](https://github.com/aydabd/k6-performance-tests/commit/4224f6b7a7c0def6496c2742418d602a29a8df37))
+* bump eslint-plugin-jsdoc from 64.5.2 to 65.0.1 ([#163](https://github.com/aydabd/k6-performance-tests/issues/163)) ([113f737](https://github.com/aydabd/k6-performance-tests/commit/113f7376ddf01f40ac924f9c8a5fd6f7f85fdf9e))
+* bump eslint-plugin-jsdoc from 65.0.1 to 65.4.1 ([#174](https://github.com/aydabd/k6-performance-tests/issues/174)) ([0198491](https://github.com/aydabd/k6-performance-tests/commit/0198491468c55e41cc016575246ed73e8f51399b))
+* bump handlebars ([2221260](https://github.com/aydabd/k6-performance-tests/commit/222126086d99653f690daa9417c662c74401e428))
+* bump handlebars from 4.7.9 to 4.7.10 in the npm_and_yarn group across 1 directory ([#171](https://github.com/aydabd/k6-performance-tests/issues/171)) ([2221260](https://github.com/aydabd/k6-performance-tests/commit/222126086d99653f690daa9417c662c74401e428))
+* bump the npm_and_yarn group across 1 directory with 2 updates ([#167](https://github.com/aydabd/k6-performance-tests/issues/167)) ([934d172](https://github.com/aydabd/k6-performance-tests/commit/934d1727c5e7bfc2a059b48382a3d1b610b6fc20))
+* bump vitest from 5.0.1 to 5.0.5 ([#172](https://github.com/aydabd/k6-performance-tests/issues/172)) ([2af0652](https://github.com/aydabd/k6-performance-tests/commit/2af06520ed8a9d4805bda26f2eb98caecf149782))
+
 ## [2.6.1](https://github.com/aydabd/k6-performance-tests/compare/v2.6.0...v2.6.1) (2026-09-22)
 
 
