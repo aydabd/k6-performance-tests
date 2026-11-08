@@ -33,7 +33,7 @@ describe('telemetry deployment orchestration', () => {
             read('k8s/k6-job-business-flow.yaml'),
         ].join('\n');
 
-        expect(deployment).toContain('IMAGE_TAG=${IMAGE_TAG:-2.3.0}');
+        expect(deployment).toContain('IMAGE_TAG=${IMAGE_TAG:-2.2.0}');
         expect(deployment).toContain('influxdb-secret.yaml');
         expect(jobs.match(/name: TEST_RUN_ID/g)).toHaveLength(4);
         expect(jobs.match(/value: "\$\{TEST_RUN_ID\}"/g)).toHaveLength(4);
