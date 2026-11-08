@@ -21,7 +21,7 @@ describe('OTLP runtime contract', () => {
         for (const filePath of dockerfiles) {
             const contents = readRepositoryFile(filePath);
 
-            expect(contents, filePath).toContain('2.2.0');
+            expect(contents, filePath).toContain('2.3.0');
             expect(contents, filePath).not.toMatch(/xk6|K6_OUT|K6_INFLUXDB|latest/);
         }
     });
