@@ -12,7 +12,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: k6-business-flow
-          image: business-flow-template:2.2.0
+          image: business-flow-template:2.3.0
           imagePullPolicy: IfNotPresent
           env:
             - name: BUSINESS_FLOW_NAME
