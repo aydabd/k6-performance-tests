@@ -69,7 +69,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: k6-template-influxdb-base:2.2.0
+    image: k6-template-influxdb-base:2.3.0
     volumes:
       - /usr/share/zoneinfo/UTC:/etc/localtime:ro
     networks:
@@ -82,7 +82,7 @@ services:
     build:
       context: .
       dockerfile: simple-k6-test-template/Dockerfile
-    image: simple-k6-test-template:2.2.0
+    image: simple-k6-test-template:2.3.0
     environment:
       - TEST_RUN_ID=${TEST_RUN_ID:-default}
       - K6_TAGS=testRunId:${TEST_RUN_ID:-default}
