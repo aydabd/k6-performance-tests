@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM k6-template-influxdb-base:2.2.0
+FROM k6-template-influxdb-base:2.3.0
 
 ARG WORK_DIR=/performance-k6
 ENV API_SERVER=websocket-echo \
