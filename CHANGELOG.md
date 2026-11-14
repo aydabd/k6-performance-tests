@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.6.3](https://github.com/aydabd/k6-performance-tests/compare/v2.6.2...v2.6.3) (2026-11-14)
+
+
+### Miscellaneous
+
+* **deps-dev:** Bump eslint-plugin-jsdoc from 65.4.2 to 65.4.5 ([#183](https://github.com/aydabd/k6-performance-tests/issues/183)) ([1d1cf46](https://github.com/aydabd/k6-performance-tests/commit/1d1cf464d1fc2a15a7eaf1294bdf51a6c21f5c89))
+* **deps-dev:** Bump vitest from 5.0.5 to 5.1.0 ([#185](https://github.com/aydabd/k6-performance-tests/issues/185)) ([4b55f49](https://github.com/aydabd/k6-performance-tests/commit/4b55f4934c9d3a34460215397c18ae47f4a16879))
+
 ## [2.6.2](https://github.com/aydabd/k6-performance-tests/compare/v2.6.1...v2.6.2) (2026-11-08)
 
 
